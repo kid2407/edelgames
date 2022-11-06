@@ -12,6 +12,7 @@ Go into the projects root directory and execute
 - `docker compose up -d` for a complete startup
 
 The frontend (react) can now be accessed by sending a GET Request to `http://127.0.0.1:3000`.
+
 The backend (react) can now be accessed by sending a POST Request to `http://127.0.0.1:5000`.
 
 # Hot reload

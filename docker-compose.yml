@@ -5,7 +5,7 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: frontend.Dockerfile
+      dockerfile: ./dockerfiles/frontend.Dockerfile
     container_name: edelgames_frontend
     volumes:
       - "./app/frontend/src:/var/www/app/frontend/src"
@@ -19,15 +19,13 @@ services:
     expose:
       - "${REACT_HTTP_PORT}"
     command: npm run start
-    environment:
-      - CHOKIDAR_USEPOLLING=true
     env_file:
       - ./.env
 
   backend:
     build:
       context: .
-      dockerfile: backend.Dockerfile
+      dockerfile: ./dockerfiles/backend.Dockerfile
     container_name: edelgames_backend
     volumes:
       - "./app/backend/src:/var/www/app/backend/src"
