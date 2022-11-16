@@ -1,0 +1,17 @@
+button, .button {
+  padding: 0.5rem 1rem;
+  display: inline-block;
+  background-color: $primary;
+  color: $white;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,.1);
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: $backgroundDark;
+  }
+
+  &.secondary {
+    background-color: $backgroundLight;
+  }
+}

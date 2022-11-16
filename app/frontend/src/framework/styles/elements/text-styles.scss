@@ -1,0 +1,9 @@
+.bold {
+  font-weight: $font-weight-bold;
+}
+
+.text-align- {
+  &right {  text-align: right;  }
+  &center {  text-align: center;  }
+  &left {  text-align: left;  }
+}

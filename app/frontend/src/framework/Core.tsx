@@ -8,7 +8,7 @@ export default class Core extends React.Component {
 
     constructor(props: object) {
         super(props);
-        this.sessionManager = new SessionManager();
+        this.sessionManager = SessionManager.getInstance();
     }
 
     render() {

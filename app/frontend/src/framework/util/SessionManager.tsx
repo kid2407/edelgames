@@ -1,5 +1,7 @@
 export default class SessionManager {
 
+    static instance: SessionManager|null;
+
     sessionId: string|null;
     isLoggedIn: boolean;
 
@@ -7,6 +9,14 @@ export default class SessionManager {
        this.sessionId = null;
        this.isLoggedIn = false;
     }
+
+    static getInstance(): SessionManager {
+        if(!SessionManager.instance) {
+            SessionManager.instance = new SessionManager();
+        }
+        return SessionManager.instance;
+    }
+
 
     connect() {
 

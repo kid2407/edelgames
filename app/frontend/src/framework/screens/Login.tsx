@@ -1,7 +1,31 @@
 import React from 'react';
 import logo_em from '../../media/images/logo_em.png';
+import SessionManager from "../util/SessionManager";
 
 export default class Login extends React.Component {
+
+    sessionManager : SessionManager;
+
+    constructor(props: object) {
+        super(props);
+        this.sessionManager = SessionManager.getInstance();
+    }
+
+    tryLogin() {
+        // username: HTMLInputElement
+        let loginScreen = document.getElementById('login-screen'),
+            username = (loginScreen?.querySelector('input[type=text]') as HTMLInputElement)?.value,
+            password = (loginScreen?.querySelector('input[type=password]') as HTMLInputElement)?.value;
+
+        if(!username || !password) {
+            let errorMessage = loginScreen?.querySelector('.error-message') as HTMLInputElement;
+            errorMessage.innerText = "Benutzername oder Password ungültig!";
+            return;
+        }
+
+
+        console.log('Logging in with u: ' + username + " and p: " + password);
+    }
 
     render() {
         return (
@@ -9,10 +33,14 @@ export default class Login extends React.Component {
                 <div className="frame">
                     <img src={logo_em} alt={"Edelmänner Logo"}/>
 
-                    <input type="text" placeholder="Benutzername" data-form={"login-form"} />
-                    <input type="password" placeholder="Passwort" data-form={"login-form"} />
+                    <div className="error-message"></div>
 
-                    <button>Login</button>
+                    <input type="text" placeholder="Benutzername" />
+                    <input type="password" placeholder="Passwort" />
+
+                    <div className="text-align-right">
+                        <button onClick={this.tryLogin.bind(this)}>Login</button>
+                    </div>
                 </div>
             </div>
         );
