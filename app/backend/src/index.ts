@@ -25,3 +25,8 @@ AppKernel.applyRoutes(app);
 app.listen(PORT, () => {
     console.log(`App listening on ${PORT}`);
 });
+
+
+io.on('connection', (socket: any) => {
+    console.log('a user connected');
+});

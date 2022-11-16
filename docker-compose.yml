@@ -3,40 +3,27 @@ version: "2"
 services:
 
   frontend:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/frontend.Dockerfile
-    container_name: edelgames_frontend
+    image: "node:16"
+    working_dir: "/var/www/app/frontend"
     volumes:
-      - "./app/frontend/src:/var/www/app/frontend/src"
-      - "./app/frontend/public:/var/www/app/frontend/public"
-      - "./app/frontend/package.json:/var/www/app/frontend/package.json"
-      - "./app/frontend/package-lock.json:/var/www/app/frontend/package-lock.json"
-      # frontend node modules
-      # - "./app/frontend/node_modules:/var/www/app/frontend/node_modules"
+      - "./app/frontend2:/var/www/app/frontend"
     ports:
       - "${REACT_HTTP_PORT}:${REACT_HTTP_PORT}"
     expose:
       - "${REACT_HTTP_PORT}"
-    command: npm run start
+    command: "./start_dev.sh"
     env_file:
       - ./.env
 
   backend:
-    build:
-      context: .
-      dockerfile: ./dockerfiles/backend.Dockerfile
-    container_name: edelgames_backend
+    image: "node:16"
+    working_dir: "/var/www/app/backend"
     volumes:
-      - "./app/backend/src:/var/www/app/backend/src"
-      - "./app/backend/package.json:/var/www/app/backend/package.json"
-      - "./app/backend/package-lock.json:/var/www/app/backend/package-lock.json"
-      # - "./app/backend/node_modules:/var/www/app/backend/node_modules"
-      # - "./app/backend/build:/var/www/app/backend/build"
+      - "./app/backend:/var/www/app/backend"
     ports:
       - "${API_HTTP_PORT}:${API_HTTP_PORT}"
     expose:
       - "${API_HTTP_PORT}"
-    command: npm run dev
+    command: "./start_dev.sh"
     env_file:
       - ./.env
