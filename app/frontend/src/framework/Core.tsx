@@ -1,21 +1,22 @@
 import React from 'react';
-import SessionManager from "./util/SessionManager";
+import SocketManager from "./util/SocketManager";
 import Login from "./screens/Login";
+
 
 export default class Core extends React.Component {
 
-    sessionManager : SessionManager;
+    socketManager : SocketManager;
 
     constructor(props: object) {
         super(props);
-        this.sessionManager = SessionManager.getInstance();
+        this.socketManager = SocketManager.getInstance();
     }
 
     render() {
         return (
             <div className="App">
                 {
-                    !this.sessionManager.isConnected() ?
+                    !this.socketManager.isConnected() ?
                         <Login /> :
                         <h1>hellowrld</h1>
                 }

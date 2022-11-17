@@ -1,14 +1,14 @@
 import React from 'react';
 import logo_em from '../../media/images/logo_em.png';
-import SessionManager from "../util/SessionManager";
+import SocketManager from "../util/SocketManager";
 
 export default class Login extends React.Component {
 
-    sessionManager : SessionManager;
+    sessionManager : SocketManager;
 
     constructor(props: object) {
         super(props);
-        this.sessionManager = SessionManager.getInstance();
+        this.sessionManager = SocketManager.getInstance();
     }
 
     tryLogin() {
