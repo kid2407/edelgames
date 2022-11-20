@@ -1,11 +1,24 @@
+/*
+ * Abstract definitions, that does not belong to one or more specific elements. These should always be first!
+ */
 @import "abstract/variables";
-@import "screens/global";
-@import "screens/login";
+@import "abstract/global";
+
+/*
+ * Definitions for classes and default HTML Tags, that are frequently used in the DOM to shorten component specific styles
+ */
 @import "elements/frame";
 @import "elements/buttons";
 @import "elements/text-styles";
+@import "elements/loading-spinner";
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
+/*
+ * Component style files, containing specific styles for a single component
+ */
+@import "../components/PageHeader";
+@import "../components/LoginWindow";
+
+/*
+ * Screen style files, containing specific styles for a single page
+ */
+@import "src/framework/screens/Lobby";

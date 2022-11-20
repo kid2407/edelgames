@@ -1,15 +1,9 @@
-import React from 'react';
 import logo_em from '../../media/images/logo_em.png';
-import SocketManager from "../util/SocketManager";
+import AbstractComponent from "./AbstractComponent";
 
-export default class Login extends React.Component {
+export default class LoginWindow extends AbstractComponent {
 
-    sessionManager : SocketManager;
 
-    constructor(props: object) {
-        super(props);
-        this.sessionManager = SocketManager.getInstance();
-    }
 
     tryLogin() {
         // username: HTMLInputElement

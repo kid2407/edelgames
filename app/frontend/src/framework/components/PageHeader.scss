@@ -1,0 +1,29 @@
+#pageHeader {
+  display: flex;
+  justify-content: stretch;
+  height: 3rem;
+  margin: 1rem;
+  background-color: $background;
+  border-radius: 4px;
+
+  & > div {
+    display: flex;
+    align-items: center
+  }
+
+  .profile-picture {
+    height: 2rem;
+    width: 2rem;
+    margin: 0 1rem;
+
+    img {
+      height: 100%;
+      border-radius: 4px;
+    }
+  }
+
+
+  .profile-name {
+    color: $text-color;
+  }
+}

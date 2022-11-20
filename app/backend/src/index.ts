@@ -7,7 +7,7 @@ import { Server } from "socket.io";
 // @ts-ignore // ignoring node_modules not synchronized with local files
 import express from "express";
 import cors from "cors";
-import Controller from "./framework/controller";
+import Controller from "./framework/Controller";
 
 
 // @ts-ignore
@@ -23,7 +23,7 @@ const io = new Server(server, {
 
 app.use(cors());
 
-const controller = new Controller();
+const controller = new Controller(io);
 
 io.on('connection', controller.onConnect.bind(controller));
 

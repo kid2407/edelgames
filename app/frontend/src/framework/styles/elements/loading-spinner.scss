@@ -1,0 +1,14 @@
+.loadingSpinner {
+  width: 3rem;
+  height: 3rem;
+  margin: calc(50vh - 1.5rem) auto auto;
+  border: 2px solid $primary;
+  border-bottom-color: transparent;
+  border-radius: 100%;
+  animation: 2s loading-spinner-rotation linear infinite;
+}
+
+@keyframes loading-spinner-rotation {
+  from {transform: rotate(0);}
+  to {transform: rotate(360deg)}
+}

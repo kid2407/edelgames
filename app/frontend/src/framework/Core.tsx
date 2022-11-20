@@ -1,25 +1,39 @@
 import React from 'react';
-import SocketManager from "./util/SocketManager";
-import Login from "./screens/Login";
+import PageHeader from "./components/PageHeader";
+import SocketManagerSingleton, {SocketEventNames} from "./util/SocketManager";
+import EventManagerSingleton from "./util/EventManager";
+import ProfileManagerSingleton from "./util/ProfileManager";
+import AbstractComponent from "./components/AbstractComponent";
 
 
-export default class Core extends React.Component {
-
-    socketManager : SocketManager;
+export default class Core extends AbstractComponent {
 
     constructor(props: object) {
         super(props);
-        this.socketManager = SocketManager.getInstance();
+        SocketManagerSingleton.initiate();
+        ProfileManagerSingleton.initiate();
+        EventManagerSingleton.subscribe(SocketEventNames.connectionStatusChanged, this.onConnectionStatusChanged.bind(this));
+    }
+
+    onConnectionStatusChanged(): void {
+        this.triggerRerender();
     }
 
     render() {
+        // show loading spinner, until page is loaded
+        if(!SocketManagerSingleton.isConnected()) {
+            return (
+                <div className="loadingSpinner"></div>
+            );
+        }
+
         return (
-            <div className="App">
-                {
-                    !this.socketManager.isConnected() ?
-                        <Login /> :
-                        <h1>hellowrld</h1>
-                }
+            <div id="pageWrap">
+                <PageHeader />
+
+                <div id="pageContent">
+                    Helloworld
+                </div>
             </div>
         );
     }

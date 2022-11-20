@@ -1,41 +1,71 @@
-import {ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData} from "./socketIoTypes";
 import { io, Socket } from "socket.io-client";
+import EventManagerSingleton, {EventNameListObj} from "./EventManager";
 
-export default class SocketManager {
+export const SocketEventNames: EventNameListObj = {
+    connectionStatusChanged: "connectionStatusChanged"
+}
 
-    static instance: SocketManager|null;
+type ListenerFunction = (data: object) => void;
 
-    socket: Socket<ServerToClientEvents, ClientToServerEvents>|null = null;
-    sessionId: string|null = null;
-    verified: boolean = false;
+
+class SocketManager {
+
+    socket: Socket;
 
     constructor() {
-        this.sessionId = null;
-        this.verified = false;
-        this.connect();
-    }
-
-    static getInstance(): SocketManager {
-        if(!SocketManager.instance) {
-            SocketManager.instance = new SocketManager();
-        }
-        return SocketManager.instance;
-    }
-
-    connect() {
         // todo: connect to backend
         const PORT = process.env.API_HTTP_PORT || 5000;
         const DOMAIN = process.env.DOMAIN || "http://localhost";
 
         this.socket = io(DOMAIN+":"+PORT);
+        this.socket.on("connect", this.onConnectionStatusChanged.bind(this));
+        this.socket.on("disconnect", this.onConnectionStatusChanged.bind(this));
+        this.socket.on("connect_error", this.onConnectionStatusChanged.bind(this));
+        this.socket.io.on("reconnect", this.onConnectionStatusChanged.bind(this));
+    }
+
+    onConnectionStatusChanged(): void {
+        EventManagerSingleton.publish(SocketEventNames.connectionStatusChanged);
     }
 
     isConnected(): boolean {
-        return this.sessionId !== null;
+        return !!this.socket?.connected;
     }
 
-    isVerified(): boolean {
-        return this.verified;
+    getSocket(): Socket {
+        return this.socket;
+    }
+
+}
+
+
+export default class SocketManagerSingleton {
+
+    private static instance: SocketManager|null;
+
+    private static getInstance(): SocketManager {
+        if(!SocketManagerSingleton.instance) {
+            SocketManagerSingleton.instance = new SocketManager();
+        }
+        return SocketManagerSingleton.instance;
+    }
+
+    public static initiate(): void {
+        // just call the getInstance method to generate a socket manager and start connection
+        // this way, we prevent other classes from executing the connect method
+        SocketManagerSingleton.getInstance();
+    }
+
+    public static isConnected(): boolean {
+        return SocketManagerSingleton.getInstance().isConnected();
+    }
+
+    public static sendEvent(eventName: string, data: object): void {
+        SocketManagerSingleton.getInstance().getSocket().emit(eventName, data);
+    }
+
+    public static subscribeEvent(eventName: string, listener: ListenerFunction): void {
+        SocketManagerSingleton.getInstance().getSocket().on(eventName, listener);
     }
 
 }

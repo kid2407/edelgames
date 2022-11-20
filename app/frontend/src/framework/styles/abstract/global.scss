@@ -1,6 +1,9 @@
 html,:root {
-  box-sizing: border-box;
   font-size: 16px;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -18,7 +21,11 @@ body {
   background-color: $backgroundDark;
 }
 
-.App {
+#pageWrap {
   width: 100%;
   height: 100%;
+
+  #pageContent {
+    padding: 0 1rem;
+  }
 }
