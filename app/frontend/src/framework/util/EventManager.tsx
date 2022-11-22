@@ -1,4 +1,5 @@
 import SocketManagerSingleton from "./SocketManager";
+import debug from "./debug";
 
 export type EventNameListObj = {
     [key: string]: string
@@ -8,16 +9,17 @@ interface ListenerFunction {
     [key: string]: Function[]
 }
 
-class EventManager {
+export class EventManagerSingleton {
 
-    eventListeners: ListenerFunction = {};
+    private eventListeners: ListenerFunction = {};
 
-    subscribe(event: string, listener: Function) {
+    public subscribe(event: string, listener: Function) {
         if(!this.eventListeners[event]) {
             this.eventListeners[event] = [];
 
             // if socket event -> create socket listener
             if(event.slice(-13) === 'EventNotified') {
+                debug('registered socket event: ' + event.slice(0, -13));
                 // e.g. "profileChangedEventNotified"
                 SocketManagerSingleton.subscribeEvent(event.slice(0, -13), this.publish.bind(this, event));
             }
@@ -25,7 +27,8 @@ class EventManager {
         this.eventListeners[event].push(listener);
     }
 
-    publish(event: string, eventData: object = {}) {
+    public publish(event: string, eventData: object = {}) {
+        debug('publishing event: ' + event, eventData);
         if(this.eventListeners[event]) {
             for(let listener of this.eventListeners[event]) {
                 listener(eventData);
@@ -35,23 +38,5 @@ class EventManager {
 
 }
 
-export default class EventManagerSingleton {
-
-    private static instance: EventManager|null;
-
-    private static getInstance(): EventManager  {
-        if(!EventManagerSingleton.instance) {
-            EventManagerSingleton.instance = new EventManager();
-        }
-        return EventManagerSingleton.instance;
-    }
-
-    public static subscribe(event: string, listener: Function) {
-        EventManagerSingleton.getInstance().subscribe(event, listener);
-    }
-
-    public static publish(event: string, eventData: object = {}) {
-        EventManagerSingleton.getInstance().publish(event, eventData);
-    }
-
-}
+const EventManager = new EventManagerSingleton();
+export default EventManager;

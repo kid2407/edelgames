@@ -1,13 +1,15 @@
-import ProfileManagerSingleton, {ProfileEventNames} from "../util/ProfileManager";
+import {ProfileEventNames} from "../util/ProfileManager";
 import AbstractComponent from "./AbstractComponent";
-import EventManagerSingleton from "../util/EventManager";
-import default_profile_image from "../../media/images/default_profile.png"
+import ProfileImage from "./ProfileImage";
+import EventManager from "../util/EventManager";
+import ProfileManager from "../util/ProfileManager";
+import RoomManager from "../util/RoomManager";
 
 export default class PageHeader extends AbstractComponent {
 
     constructor(props: object) {
         super(props);
-        EventManagerSingleton.subscribe(ProfileEventNames.profileUpdated, this.onProfileDataChanged.bind(this));
+        EventManager.subscribe(ProfileEventNames.profileUpdated, this.onProfileDataChanged.bind(this));
     }
 
     onProfileDataChanged() {
@@ -19,15 +21,16 @@ export default class PageHeader extends AbstractComponent {
             <div id="pageHeader">
 
                 <div className="text-align-left">
-                    <div className="profile-picture">
-                        <img src={ProfileManagerSingleton.getPicture() ?? default_profile_image}
-                             alt={ProfileManagerSingleton.getUsername()} />
-                    </div>
-                    <div className="profile-name">{ProfileManagerSingleton.getUsername()}</div>
+                    <ProfileImage picture={ProfileManager.getPicture()}
+                                  username={ProfileManager.getUsername()}
+                                  id={ProfileManager.getId()}
+                    />
+
+                    <div className="profile-name">{ProfileManager.getUsername()}</div>
                 </div>
 
                 <div className="text-align-center">
-
+                    Room: {RoomManager.getRoomName()}
                 </div>
 
                 <div className="text-align-right">

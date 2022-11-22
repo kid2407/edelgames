@@ -1,4 +1,5 @@
 import Controller from "../Controller";
+import {Socket} from "socket.io";
 
 type ListenerFunction = (data: object) => void;
 
@@ -20,6 +21,12 @@ export default class SocketMessenger {
     public static directMessage(socketId: string, eventName: string, message: object): void {
         Controller.io.to(socketId).emit(eventName, message);
     }
+
+    // does the same thing as directMessage, but skips the id search of the socket by passing it directly
+    public static directMessageToSocket(socket: Socket, eventName: string, message: object): void {
+        socket.emit(eventName, message);
+    }
+
 
     // register a subscriber to a channel, that will be called upon receiving such a message
     public static subscribeEvent(eventName: string, listener: ListenerFunction): void {

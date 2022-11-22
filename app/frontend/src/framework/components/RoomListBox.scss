@@ -1,0 +1,22 @@
+#roomListBox {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid white;
+  width: fit-content;
+  border-radius: 4px;
+
+  & > div {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    width: 100%;
+
+    &:not(:last-of-type) {
+      border-bottom: 2px solid $backgroundLight;
+    }
+
+    .profile-picture {
+      margin-right: 1rem;
+    }
+  }
+}

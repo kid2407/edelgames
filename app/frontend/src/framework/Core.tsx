@@ -1,19 +1,26 @@
 import React from 'react';
 import PageHeader from "./components/PageHeader";
-import SocketManagerSingleton, {SocketEventNames} from "./util/SocketManager";
 import EventManagerSingleton from "./util/EventManager";
-import ProfileManagerSingleton from "./util/ProfileManager";
 import AbstractComponent from "./components/AbstractComponent";
+import Lobby from "./screens/Lobby";
+import SocketManager, {SocketEventNames, SocketManagerSingleton} from "./util/SocketManager";
+import ProfileManager, {ProfileManagerSingleton} from "./util/ProfileManager";
 
 
 export default class Core extends AbstractComponent {
 
+    private socketManager : SocketManagerSingleton;
+    private profileManager : ProfileManagerSingleton;
+
     constructor(props: object) {
         super(props);
-        SocketManagerSingleton.initiate();
-        ProfileManagerSingleton.initiate();
+
+        // load objects to create an instance and kickoff some functionality
+        this.socketManager = SocketManager;
+        this.profileManager = ProfileManager;
         EventManagerSingleton.subscribe(SocketEventNames.connectionStatusChanged, this.onConnectionStatusChanged.bind(this));
     }
+
 
     onConnectionStatusChanged(): void {
         this.triggerRerender();
@@ -21,7 +28,7 @@ export default class Core extends AbstractComponent {
 
     render() {
         // show loading spinner, until page is loaded
-        if(!SocketManagerSingleton.isConnected()) {
+        if(!this.socketManager.isConnected()) {
             return (
                 <div className="loadingSpinner"></div>
             );
@@ -32,7 +39,7 @@ export default class Core extends AbstractComponent {
                 <PageHeader />
 
                 <div id="pageContent">
-                    Helloworld
+                    <Lobby />
                 </div>
             </div>
         );

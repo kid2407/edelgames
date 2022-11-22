@@ -3,7 +3,7 @@
 }
 
 .text-align- {
-  &right {  text-align: right;  }
-  &center {  text-align: center;  }
-  &left {  text-align: left;  }
+  &left {     text-align: left;     justify-content: flex-start; }
+  &center {   text-align: center;   justify-content: center; }
+  &right {    text-align: right;    justify-content: flex-end; }
 }

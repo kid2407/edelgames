@@ -1,4 +1,9 @@
-import EventManagerSingleton, {EventNameListObj} from "./EventManager";
+import {EventNameListObj} from "./EventManager";
+import EventManager from "./EventManager";
+
+/**
+ * Stores and manages all data concerning the users own profile
+ */
 
 export const ProfileEventNames: EventNameListObj = {
     profileChangedEventNotified: "profileChangedEventNotified",
@@ -8,53 +13,39 @@ export const ProfileEventNames: EventNameListObj = {
 type ServerProfileObject = {
     id: string;
     username: string;
-    room: string;
     screen: string;
     pictureUrl: string|null;
     verified: boolean;
 }
 
-class ProfileManager {
+export class ProfileManagerSingleton {
 
-    id: string|null = null;
+    id: string = "0";
     username: string = 'loading';
     verified: boolean = false;
     picture: string|null = null;
-    room: string = 'lobby';
+    screen: string = 'lobby';
 
     constructor() {
-        EventManagerSingleton.subscribe(ProfileEventNames.profileChangedEventNotified, this.onProfileChangedChannelNotified.bind(this))
+        EventManager.subscribe(ProfileEventNames.profileChangedEventNotified, this.onProfileChangedEventNotified.bind(this))
     }
 
-    onProfileChangedChannelNotified(data: ServerProfileObject): void {
+    onProfileChangedEventNotified(data: ServerProfileObject): void {
         this.id = data.id;
         this.username = data.username;
         this.verified = data.verified;
         this.picture = data.pictureUrl;
-        this.room = data.room;
+        this.screen = data.screen;
 
-        EventManagerSingleton.publish(ProfileEventNames.profileUpdated);
+        EventManager.publish(ProfileEventNames.profileUpdated);
     }
+
+    public getUsername():    string      {return this.username; }
+    public getId():          string      {return this.id; }
+    public getPicture():     string|null {return this.picture; }
+    public getScreen():        string      {return this.screen; }
 
 }
 
-export default class ProfileManagerSingleton {
-
-    private static instance: ProfileManager|null;
-
-    private static getInstance(): ProfileManager  {
-        if(!ProfileManagerSingleton.instance) {
-            ProfileManagerSingleton.instance = new ProfileManager();
-        }
-        return ProfileManagerSingleton.instance;
-    }
-
-    public static initiate() {
-        ProfileManagerSingleton.getInstance();
-    }
-
-    public static getUsername():    string      {return ProfileManagerSingleton.getInstance().username; }
-    public static getId():          string|null {return ProfileManagerSingleton.getInstance().id; }
-    public static getPicture():     string|null {return ProfileManagerSingleton.getInstance().picture; }
-    public static getRoom():        string      {return ProfileManagerSingleton.getInstance().room; }
-}
+const ProfileManager = new ProfileManagerSingleton();
+export default ProfileManager;

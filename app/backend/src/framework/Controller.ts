@@ -1,54 +1,33 @@
-import UserManager from "./users/UserManager";
-import SocketMessenger from "./users/SocketMessenger";
+import SocketMessenger from "./util/SocketMessenger";
 import {Server, Socket} from "socket.io";
 import User from "./users/User";
+import RoomManager from "./users/RoomManager";
 
 export default class Controller {
 
     public static io: Server;
+    public static connectedUsers: number = 0;
 
     constructor(io: Server) {
         Controller.io = io;
     }
 
-
-    userManager: UserManager = new UserManager();
-
     onConnect(socket: Socket): void {
-        // register disconnect listener
-        socket.on('disconnect', this.onDisconnect.bind(this, socket));
-        // create and store user object
-        let user: User = this.userManager.addUser(socket);
+        // create user and register disconnect listener
+        let user: User = new User(socket);
+        socket.on('disconnect', this.onDisconnect.bind(this, socket, user));
+        // switch user into lobby
+        RoomManager.getLobbyRoom().joinRoom(user);
 
         // debug output
-        let userCount = this.userManager.getUserList().length;
-        console.log(`user ${socket.id} connected! (${userCount} users in total)`);
-
-        let currentRoom = user.getRoom();
-        // tell the client its new profile data
-        SocketMessenger.directMessage(socket.id, 'profileChanged', {
-            username: user.getUsername(),
-            id: user.getId(),
-            room: currentRoom,
-            screen: user.getCurrentScreen(),
-            pictureUrl: user.getPictureUrl(),
-            verified: user.isVerified()
-        })
-
-        // tell everyone in this room the new userlist
-        SocketMessenger.broadcast(currentRoom, 'userListChanged', this.userManager.getPublicRoomList(currentRoom));
+        Controller.connectedUsers++;
+        console.log(`user ${socket.id} (${user.getUsername()}) connected! (${Controller.connectedUsers} users in total)`);
     }
 
-    onDisconnect(socket: Socket): void {
-        let user = this.userManager.removeUser(socket);
-
-        let userCount = this.userManager.getUserList().length;
-        console.log(`user ${socket.id} disconnected! (${userCount} users remaining)`);
-
-        let affectedRoom = user.getRoom();
-        SocketMessenger.broadcast(affectedRoom, 'userListChanged', this.userManager.getPublicRoomList(affectedRoom));
+    onDisconnect(socket: Socket, user: User): void {
+        Controller.connectedUsers--;
+        console.log(`user ${socket.id} (${user.getUsername()}) disconnected! (${Controller.connectedUsers} users remaining)`);
+        user.destroyUser();
     }
-
-
 
 }
