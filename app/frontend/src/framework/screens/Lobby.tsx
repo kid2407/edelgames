@@ -1,4 +1,5 @@
 import React from "react";
+import RoomOverviewBox from "../components/RoomOverviewBox";
 import RoomListBox from "../components/RoomListBox";
 
 

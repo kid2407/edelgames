@@ -11,6 +11,7 @@ export default class Room {
     private roomName: string;
     private roomMembers: User[] = [];
     private roomMaster: User|null;
+    private roomPassword: string|null = null;
 
     constructor(roomMaster: User|null, isLobby: boolean = false) {
         if(isLobby && !Room.lobbyWasDefined) {
@@ -31,6 +32,7 @@ export default class Room {
     public getRoomId():     string  {return this.roomId;}
     public getRoomName():   string  {return this.roomName;}
     public getRoomMembers(): User[] {return this.roomMembers}
+    public getRoomPassword(): string|null {return this.roomPassword}
     public getRoomMaster(): User|null {
         // if we don´t have a room master and are not in the lobby, we select another user as the room master
         if(this.roomMaster === null && !this.isLobby && this.roomMembers.length > 0) {
@@ -50,6 +52,8 @@ export default class Room {
             roomName: this.roomName,
             roomMembers: this.getPublicRoomMemberList()
         });
+
+        RoomManager.updateLobbyMembersRoomData();
     }
 
     public broadcastRoomMembers(eventName: string, data: object): void {
@@ -64,9 +68,14 @@ export default class Room {
         return this.roomMembers.length;
     }
 
-    public joinRoom(newMember: User): void {
+    public joinRoom(newMember: User, passphrase: string|null = null): boolean {
+        if(passphrase !== this.roomPassword) {
+            return false;
+        }
+
         this.roomMembers.push(newMember);
         newMember.switchRoom(this).then(this.sendRoomChangedBroadcast.bind(this));
+        return true;
     }
 
     /**

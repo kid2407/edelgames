@@ -1,5 +1,6 @@
 import Room from "./Room";
 import User from "./User";
+import SocketMessenger from "../util/SocketMessenger";
 
 export class RoomManagerSingleton {
 
@@ -35,6 +36,28 @@ export class RoomManagerSingleton {
 
     public getRoomList(): Room[] {
         return this.rooms;
+    }
+
+    public updateLobbyMembersRoomData(): void {
+        let roomData: {rooms: object[]} = {
+            rooms:  [
+                {
+                    roomId:      this.lobby.getRoomId(),
+                    roomName:    this.lobby.getRoomName(),
+                    roomMembers: this.lobby.getPublicRoomMemberList(),
+                }
+            ]
+        };
+
+        for(let room of this.rooms) {
+            roomData.rooms.push({
+                roomId: room.getRoomId(),
+                roomName: room.getRoomName(),
+                roomMembers: room.getPublicRoomMemberList(),
+            });
+        }
+
+        SocketMessenger.broadcast(this.getLobbyRoom().getRoomId(), 'lobbyRoomsChanged', roomData)
     }
 
 }

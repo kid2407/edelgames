@@ -6,13 +6,15 @@ import EventManager, {EventNameListObj} from "./EventManager";
 
 export const RoomEventNames: EventNameListObj = {
     roomChangedEventNotified: "roomChangedEventNotified",
+    lobbyRoomsChangedEventNotified: "lobbyRoomsChangedEventNotified",
     roomUpdated: "roomUpdated"
 }
 
-type ServerRoomMember = {
+export type ServerRoomMember = {
     id: string;
     username: string;
     picture: string|null;
+    isRoomMaster: boolean;
 }
 
 type ServerRoomObject = {
@@ -42,14 +44,14 @@ export class RoomManagerSingleton {
             roomMembers.push(new User(
                 member.id,
                 member.username,
-                member.picture
+                member.picture,
+                member.isRoomMaster
             ));
         }
         this.roomMembers = roomMembers;
 
         EventManager.publish(RoomEventNames.roomUpdated);
     }
-
 
     public getRoomId():         string { return this.roomId; }
     public getRoomName():       string { return this.roomName; }
