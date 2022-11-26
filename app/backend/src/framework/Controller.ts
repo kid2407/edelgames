@@ -16,6 +16,7 @@ export default class Controller {
         // create user and register disconnect listener
         let user: User = new User(socket);
         socket.on('disconnect', this.onDisconnect.bind(this, socket, user));
+
         // switch user into lobby
         RoomManager.getLobbyRoom().joinRoom(user);
 

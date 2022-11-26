@@ -3,6 +3,7 @@ import EventManager from "../util/EventManager";
 import {RoomEventNames, ServerRoomMember} from "../util/RoomManager";
 import AbstractComponent from "./AbstractComponent";
 import ProfileImage from "./ProfileImage";
+import SocketManager from "../util/SocketManager";
 
 type ForeignRoomObject = {
     roomId: string;
@@ -12,12 +13,29 @@ type ForeignRoomObject = {
 
 export default class RoomListBox extends AbstractComponent {
 
+    updateInterval: NodeJS.Timer|number|null = null;
+
     constructor(props : any) {
         super(props);
+
         EventManager.subscribe(RoomEventNames.lobbyRoomsChangedEventNotified, this.onLobbyRoomsChangedEventNotified.bind(this));
         this.state = {
            rooms: []
         };
+
+        this.updateInterval = setInterval(this.onRefreshInterval.bind(this), 3000);
+    }
+
+    componentWillUnmount() {
+        if(this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+    }
+
+    onRefreshInterval() {
+        if(this.state.rooms.length === 0) {
+            SocketManager.sendEvent('refreshLobbyRoomData', {});
+        }
     }
 
     onLobbyRoomsChangedEventNotified(data: {rooms: ForeignRoomObject[]}) {
@@ -28,10 +46,9 @@ export default class RoomListBox extends AbstractComponent {
         });
     }
 
-
     renderMember(member: ServerRoomMember) {
         return (
-            <div className="member-list-row">
+            <div key={member.id} className="member-list-row">
                 <ProfileImage picture={member.picture}
                               username={member.username}
                               id={member.id} />
@@ -45,6 +62,7 @@ export default class RoomListBox extends AbstractComponent {
 
         return (
             <div className="room-overview-box"
+                 key={room.roomId}
                  style={{borderColor: roomColor}}>
                 <div className="room-overview-box--room-data"
                      style={{backgroundColor: roomColor}}>{room.roomName}</div>

@@ -20,11 +20,11 @@ type ServerProfileObject = {
 
 export class ProfileManagerSingleton {
 
-    id: string = "0";
-    username: string = 'loading';
-    verified: boolean = false;
-    picture: string|null = null;
-    screen: string = 'lobby';
+    private id: string = "0";
+    private username: string = 'loading';
+    private verified: boolean = false;
+    private picture: string|null = null;
+    private screen: string = 'lobby';
 
     constructor() {
         EventManager.subscribe(ProfileEventNames.profileChangedEventNotified, this.onProfileChangedEventNotified.bind(this))
@@ -41,10 +41,10 @@ export class ProfileManagerSingleton {
     }
 
     public getUsername():    string      {return this.username; }
-    public getId():          string      {return this.id; }
-    public getPicture():     string|null {return this.picture; }
-    public getScreen():        string      {return this.screen; }
-
+    public getId():          string      {return this.id;       }
+    public getPicture():     string|null {return this.picture;  }
+    public getScreen():      string      {return this.screen;   }
+    public isVerified():     boolean     {return this.verified; }
 }
 
 const ProfileManager = new ProfileManagerSingleton();

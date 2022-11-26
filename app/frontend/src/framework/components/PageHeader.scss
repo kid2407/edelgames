@@ -5,27 +5,29 @@
   margin: 1rem;
   background-color: $background;
   border-radius: 4px;
+  overflow: hidden;
 
   & > div {
     flex: 1 1 30%;
     display: flex;
-    align-items: center
-  }
+    align-items: center;
 
-  .profile-picture {
-    height: 2rem;
-    width: 2rem;
-    margin: 0 1rem;
-
-    img {
+    #userProfileInfoShort {
+      display: flex;
       height: 100%;
-      border-radius: 4px;
+      align-items: center;
+      padding: 0 1rem;
+      cursor: pointer;
+
+      &:hover {
+        background: $backgroundDark;
+      }
+
+      .profile-name {
+        color: $text-color;
+      }
     }
-  }
 
-
-  .profile-name {
-    color: $text-color;
   }
 }
 

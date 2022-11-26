@@ -1,30 +1,47 @@
 import logo_em from '../../media/images/logo_em.png';
-import AbstractComponent from "./AbstractComponent";
+import React, {MouseEventHandler} from "react";
+import debug from "../util/debug";
+import SocketManager from "../util/SocketManager";
 
-export default class LoginWindow extends AbstractComponent {
+type LoginWindowProps = {
+    show: boolean,
+    closeFunction: MouseEventHandler
+}
 
-
+export default class LoginWindow extends React.Component<LoginWindowProps, {}> {
 
     tryLogin() {
         // username: HTMLInputElement
-        let loginScreen = document.getElementById('login-screen'),
-            username = (loginScreen?.querySelector('input[type=text]') as HTMLInputElement)?.value,
-            password = (loginScreen?.querySelector('input[type=password]') as HTMLInputElement)?.value;
+        let loginScreen = document.getElementById('login-backdrop') as HTMLElement,
+            username = (loginScreen.querySelector('input[type=text]') as HTMLInputElement)?.value,
+            password = (loginScreen.querySelector('input[type=password]') as HTMLInputElement)?.value;
 
         if(!username || !password) {
-            let errorMessage = loginScreen?.querySelector('.error-message') as HTMLInputElement;
+            let errorMessage = loginScreen.querySelector('.error-message') as HTMLInputElement;
             errorMessage.innerText = "Benutzername oder Password ungültig!";
             return;
         }
 
+        SocketManager.sendEvent('userLoginAttempt', {
+            username: username,
+            password: password
+        })
 
-        console.log('Logging in with u: ' + username + " and p: " + password);
+        debug(`Try Login as ${username} with "${password}"`);
     }
 
     render() {
+        if(!this.props.show) {
+            return null;
+        }
+
         return (
-            <div id="login-screen">
-                <div className="frame">
+            <div id="login-backdrop"
+                 onClick={this.props.closeFunction}>
+
+                <div className="frame"
+                     onClick={(event) => event.stopPropagation() }>
+
                     <img src={logo_em} alt={"Edelmänner Logo"}/>
 
                     <div className="error-message"></div>

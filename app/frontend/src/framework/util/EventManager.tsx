@@ -9,21 +9,31 @@ interface ListenerFunction {
     [key: string]: Function[]
 }
 
+interface MessageEventObject {
+    eventName: string,
+    eventData: object
+}
+
 export class EventManagerSingleton {
 
     private eventListeners: ListenerFunction = {};
+
+    constructor() {
+        SocketManagerSingleton.subscribeEvent('message', this.onSocketMessage.bind(this))
+    }
+
+    public onSocketMessage(messageData: object): void {
+        let {eventName, eventData} = messageData as MessageEventObject;
+        this.publish(eventName + 'EventNotified', eventData);
+    }
 
     public subscribe(event: string, listener: Function) {
         if(!this.eventListeners[event]) {
             this.eventListeners[event] = [];
 
-            // if socket event -> create socket listener
-            if(event.slice(-13) === 'EventNotified') {
-                debug('registered socket event: ' + event.slice(0, -13));
-                // e.g. "profileChangedEventNotified"
-                SocketManagerSingleton.subscribeEvent(event.slice(0, -13), this.publish.bind(this, event));
-            }
+            debug('registered event subscription: ' + event);
         }
+
         this.eventListeners[event].push(listener);
     }
 

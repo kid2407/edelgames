@@ -4,29 +4,16 @@ import RoomManager from "./RoomManager";
 
 export default class Room {
 
-    public static lobbyWasDefined : boolean = false;
+    protected roomId: string;
+    protected roomName: string;
+    protected roomMembers: User[] = [];
+    protected roomMaster: User|null;
+    protected roomPassword: string|null = null;
 
-    private readonly roomId: string;
-    private readonly isLobby: boolean;
-    private roomName: string;
-    private roomMembers: User[] = [];
-    private roomMaster: User|null;
-    private roomPassword: string|null = null;
-
-    constructor(roomMaster: User|null, isLobby: boolean = false) {
-        if(isLobby && !Room.lobbyWasDefined) {
-            Room.lobbyWasDefined = true;
-            this.roomId = 'lobby';
-            this.roomName = 'Lobby';
-            this.roomMaster = null; // the lobby does not have a room master
-            this.isLobby = true;
-        }
-        else {
-            this.roomId = this.createIdHash();
-            this.roomName = 'room'+this.roomId;
-            this.roomMaster = roomMaster;
-            this.isLobby = false;
-        }
+    constructor(roomMaster: User|null) {
+        this.roomId = this.createIdHash();
+        this.roomName = 'room'+this.roomId;
+        this.roomMaster = roomMaster;
     }
 
     public getRoomId():     string  {return this.roomId;}
@@ -34,8 +21,8 @@ export default class Room {
     public getRoomMembers(): User[] {return this.roomMembers}
     public getRoomPassword(): string|null {return this.roomPassword}
     public getRoomMaster(): User|null {
-        // if we don´t have a room master and are not in the lobby, we select another user as the room master
-        if(this.roomMaster === null && !this.isLobby && this.roomMembers.length > 0) {
+        // if we don´t have a room master, we select another user as the room master
+        if(this.roomMaster === null && this.roomMembers.length > 0) {
             this.roomMaster = this.roomMembers[0];
         }
         return this.roomMaster;
@@ -101,5 +88,4 @@ export default class Room {
             };
         });
     }
-
 }

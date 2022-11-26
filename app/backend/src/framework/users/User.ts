@@ -1,6 +1,7 @@
 import {Socket} from "socket.io";
 import Room from "./Room";
 import SocketMessenger from "../util/SocketMessenger";
+import RoomManager from "./RoomManager";
 
 export default class User {
 
@@ -17,6 +18,10 @@ export default class User {
         this.id = this.createIdHash();
         this.name = 'guest_'+this.id;
         this.sendUserProfileChangedMessage();
+
+        // register generic listeners
+        SocketMessenger.subscribeEventToSocket(socket, 'userLoginAttempt', this.authenticate.bind(this));
+        SocketMessenger.subscribeEventToSocket(socket, 'refreshLobbyRoomData', this.refreshLobbyRoomData.bind(this));
     }
 
     /** This will remove the user from its current room, hopefully leaving no reference behind. Thus allowing it to be cleared by the garbage collection
@@ -67,7 +72,14 @@ export default class User {
         })
     }
 
-    public authenticate(username: string, password: string): boolean {
+    public authenticate(loginData: {username: string, password: string}): boolean {
+        let {username, password} = loginData;
+
+        if(this.verified) {
+            // already verified
+            return true;
+        }
+
         // todo try login with the xenforo api
         let credentialsValid = true; // for now, let all attempts succeed
         if(credentialsValid) {
@@ -81,6 +93,10 @@ export default class User {
         }
 
         return credentialsValid;
+    }
+
+    public refreshLobbyRoomData() {
+        SocketMessenger.directMessageToSocket(this.socket, 'lobbyRoomsChanged', RoomManager.getLobbyMemberRoomData());
     }
 
 }

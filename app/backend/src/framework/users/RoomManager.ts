@@ -1,15 +1,16 @@
 import Room from "./Room";
 import User from "./User";
 import SocketMessenger from "../util/SocketMessenger";
+import Lobby from "./Lobby";
 
 export class RoomManagerSingleton {
 
-    private readonly lobby: Room;
+    private readonly lobby: Lobby;
     private rooms: Room[] = [];
 
     constructor() {
         // create lobby room
-        this.lobby = new Room(null, true);
+        this.lobby = new Lobby();
     }
 
     // rooms require a user as the admin
@@ -30,7 +31,7 @@ export class RoomManagerSingleton {
         return this.rooms.find(room => room.getRoomId() === roomId) || null;
     }
 
-    public getLobbyRoom(): Room {
+    public getLobbyRoom(): Lobby {
         return this.lobby;
     }
 
@@ -39,25 +40,22 @@ export class RoomManagerSingleton {
     }
 
     public updateLobbyMembersRoomData(): void {
+        SocketMessenger.broadcast(this.getLobbyRoom().getRoomId(), 'lobbyRoomsChanged', this.getLobbyMemberRoomData())
+    }
+
+    public getLobbyMemberRoomData(): {rooms: object[]} {
         let roomData: {rooms: object[]} = {
-            rooms:  [
-                {
-                    roomId:      this.lobby.getRoomId(),
-                    roomName:    this.lobby.getRoomName(),
-                    roomMembers: this.lobby.getPublicRoomMemberList(),
-                }
-            ]
+            rooms:  []
         };
 
-        for(let room of this.rooms) {
+        for(let room of [...this.rooms, this.lobby]) {
             roomData.rooms.push({
                 roomId: room.getRoomId(),
                 roomName: room.getRoomName(),
                 roomMembers: room.getPublicRoomMemberList(),
             });
         }
-
-        SocketMessenger.broadcast(this.getLobbyRoom().getRoomId(), 'lobbyRoomsChanged', roomData)
+        return roomData;
     }
 
 }

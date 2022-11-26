@@ -1,5 +1,6 @@
 import { io, Socket } from "socket.io-client";
 import EventManagerSingleton, {EventNameListObj} from "./EventManager";
+import debug from "./debug";
 
 export const SocketEventNames: EventNameListObj = {
     connectionStatusChanged: "connectionStatusChanged"
@@ -16,14 +17,14 @@ export class SocketManagerSingleton {
         const DOMAIN = process.env.DOMAIN || "http://localhost";
 
         this.socket = io(DOMAIN+":"+PORT);
-        this.socket.on("connect", this.onConnectionStatusChanged.bind(this));
-        this.socket.on("disconnect", this.onConnectionStatusChanged.bind(this));
-        this.socket.on("connect_error", this.onConnectionStatusChanged.bind(this));
-        this.socket.io.on("reconnect", this.onConnectionStatusChanged.bind(this));
+        this.socket.on("connect", this.onConnectionStatusChanged.bind(this, true));
+        this.socket.on("disconnect", this.onConnectionStatusChanged.bind(this, false));
+        this.socket.on("connect_error", this.onConnectionStatusChanged.bind(this, false));
+        this.socket.io.on("reconnect", this.onConnectionStatusChanged.bind(this, true));
     }
 
-    private onConnectionStatusChanged(): void {
-        EventManagerSingleton.publish(SocketEventNames.connectionStatusChanged);
+    private onConnectionStatusChanged(status: boolean): void {
+        EventManagerSingleton.publish(SocketEventNames.connectionStatusChanged, {connected: status});
     }
 
     public isConnected(): boolean {
@@ -35,10 +36,12 @@ export class SocketManagerSingleton {
     }
 
     public sendEvent(eventName: string, data: object): void {
+        debug(`Sending event ${eventName} with `, data);
         this.socket.emit(eventName, data);
     }
 
     public subscribeEvent(eventName: string, listener: ListenerFunction): void {
+        debug(`Subscribing event ${eventName} with `, listener);
         this.socket.on(eventName, listener);
     }
 }
