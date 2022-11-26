@@ -9,6 +9,7 @@ export default class Room {
     protected roomMembers: User[] = [];
     protected roomMaster: User|null;
     protected roomPassword: string|null = null;
+    protected currentScreen: string = 'idle';
 
     constructor(roomMaster: User|null) {
         this.roomId = this.createIdHash();
@@ -17,11 +18,12 @@ export default class Room {
         if(roomMaster) this.roomMembers = [roomMaster];
     }
 
-    public getRoomId():     string  {return this.roomId;}
-    public getRoomName():   string  {return this.roomName;}
-    public getRoomMembers(): User[] {return this.roomMembers}
-    public getRoomPassword(): string|null {return this.roomPassword}
-    public getRoomMaster(): User|null {
+    public getRoomId():         string      {return this.roomId;}
+    public getRoomName():       string      {return this.roomName;}
+    public getRoomMembers():    User[]      {return this.roomMembers}
+    public getRoomPassword():   string|null {return this.roomPassword}
+    public getCurrentScreen():  string      {return this.currentScreen}
+    public getRoomMaster():     User|null   {
         // if we don´t have a room master, we select another user as the room master
         if(this.roomMaster === null && this.roomMembers.length > 0) {
             this.roomMaster = this.roomMembers[0];
@@ -38,7 +40,8 @@ export default class Room {
         this.broadcastRoomMembers('roomChanged', {
             roomId: this.roomId,
             roomName: this.roomName,
-            roomMembers: this.getPublicRoomMemberList()
+            roomMembers: this.getPublicRoomMemberList(),
+            currentScreen: this.currentScreen
         });
 
         RoomManager.updateLobbyMembersRoomData();
@@ -74,8 +77,12 @@ export default class Room {
     public removeUserFromRoom(user: User) {
         this.roomMembers = this.roomMembers.filter((member) => member !== user);
         this.sendRoomChangedBroadcast();
+
         if(this.getMemberCount() === 0) {
             RoomManager.removeRoom(this);
+        }
+        else if (this.roomMaster === user) {
+            this.roomMaster = this.roomMembers[0];
         }
     }
 

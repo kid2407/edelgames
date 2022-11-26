@@ -9,7 +9,6 @@ export default class User {
     private readonly id: string = ""; // required for identifying users with the same name
     private name: string = ""; // basically the username or guest_{id}
     private verified: boolean = false; // true, if the user did authenticate itself by login
-    private currentScreen: string = "lobby"; // tells the client, which screen to display
     private currentRoom: Room|null = null;
     private pictureUrl: string|null = null;
     private authSessionId: string|null = null;
@@ -26,6 +25,7 @@ export default class User {
         SocketMessenger.subscribeEventToSocket(socket, 'userLoginAttempt', this.authenticate.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'refreshLobbyRoomData', this.refreshLobbyRoomData.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'createNewRoom', this.createNewRoom.bind(this));
+        SocketMessenger.subscribeEventToSocket(socket, 'returnToLobby', this.returnToLobby.bind(this));
     }
 
     checkSocketCookies() {
@@ -53,7 +53,6 @@ export default class User {
     public getUsername():       string      {return this.name;}
     public getId():             string      {return this.id;}
     public getPictureUrl():     string|null {return this.pictureUrl;}
-    public getCurrentScreen():  string      {return this.currentScreen;}
     public getCurrentRoom():    Room|null   {return this.currentRoom;}
     public getSocket():         Socket      {return this.socket;}
     public isVerified():        boolean     {return this.verified;}
@@ -123,6 +122,12 @@ export default class User {
     public createNewRoom() {
         if(this.verified && this.currentRoom.getRoomId() === 'lobby') {
             RoomManager.createRoom(this);
+        }
+    }
+
+    public returnToLobby() {
+        if(this.currentRoom.getRoomId() !== 'lobby') {
+            RoomManager.getLobbyRoom().joinRoom(this);
         }
     }
 

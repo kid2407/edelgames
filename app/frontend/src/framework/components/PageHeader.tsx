@@ -5,6 +5,7 @@ import EventManager from "../util/EventManager";
 import ProfileManager from "../util/ProfileManager";
 import RoomManager from "../util/RoomManager";
 import LoginWindow from "./LoginWindow";
+import SocketManager from "../util/SocketManager";
 
 type PageHeaderState = {
     showLoginWindow: boolean
@@ -40,6 +41,10 @@ export default class PageHeader extends AbstractComponent {
         console.log('hiding login window');
     }
 
+    leaveRoom() {
+        SocketManager.sendEvent('returnToLobby', {});
+    }
+
     render() {
         return (
             <div id="pageHeader">
@@ -61,6 +66,10 @@ export default class PageHeader extends AbstractComponent {
 
                 <div className="text-align-center">
                     Room: {RoomManager.getRoomName()}
+                    {
+                        (RoomManager.getRoomId() === 'lobby') ? null :
+                        <button className="secondary" onClick={this.leaveRoom.bind(this)}>Raum verlassen</button>
+                    }
                 </div>
 
                 <div className="text-align-right">

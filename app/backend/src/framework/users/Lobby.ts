@@ -21,4 +21,9 @@ export default class Lobby extends Room {
         return null;
     }
 
+    public getCurrentScreen(): string {
+        // there is only one possible screen for this room
+        return 'lobby'
+    }
+
 }

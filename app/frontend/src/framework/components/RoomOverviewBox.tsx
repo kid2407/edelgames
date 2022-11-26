@@ -20,21 +20,27 @@ export default class RoomOverviewBox extends AbstractComponent {
 
     renderMember(member: User) {
         return (
-            <div>
+            <div className="member-list-row">
                 <ProfileImage picture={member.getPicture()}
                               username={member.getUsername()}
                               id={member.getId()} />
                 {member.getUsername()}
-                {(member.isRoomMaster() ? <span>&nbsp;(RM)</span> : null)}
                 {(member.getId() === ProfileManager.getId() ? <span>&nbsp;(You)</span> : null)}
+                {(member.isRoomMaster() ? <span className="signature-text">&nbsp;A</span> : null)}
             </div>
         );
     }
 
     render() {
         return (
-            <div id="roomListBox">
-                {RoomManager.getRoomMembers().map(this.renderMember)}
+            <div className="room-overview-box">
+                <div className="room-overview-box--room-data">
+                    {RoomManager.getRoomName()}
+                </div>
+
+                <div className="room-overview-box--member-list">
+                    {RoomManager.getRoomMembers().map(this.renderMember)}
+                </div>
             </div>
         );
     }

@@ -2,9 +2,11 @@ import React from 'react';
 import PageHeader from "./components/PageHeader";
 import EventManagerSingleton from "./util/EventManager";
 import AbstractComponent from "./components/AbstractComponent";
-import Lobby from "./screens/Lobby";
+import Lobby from "./screens/Lobby/Lobby";
 import SocketManager, {SocketEventNames, SocketManagerSingleton} from "./util/SocketManager";
 import ProfileManager, {ProfileManagerSingleton} from "./util/ProfileManager";
+import RoomManager, {RoomEventNames} from "./util/RoomManager";
+import IdleRoom from "./screens/IdleRoom/IdleRoom";
 
 
 export default class Core extends AbstractComponent {
@@ -18,12 +20,20 @@ export default class Core extends AbstractComponent {
         // load objects to create an instance and kickoff some functionality
         this.socketManager = SocketManager;
         this.profileManager = ProfileManager;
-        EventManagerSingleton.subscribe(SocketEventNames.connectionStatusChanged, this.onConnectionStatusChanged.bind(this));
+        EventManagerSingleton.subscribe(SocketEventNames.connectionStatusChanged, this.triggerRerender.bind(this));
+        EventManagerSingleton.subscribe(RoomEventNames.roomUpdated, this.triggerRerender.bind(this));
     }
 
 
-    onConnectionStatusChanged(): void {
-        this.triggerRerender();
+    renderRoomScreen() {
+        switch (RoomManager.getRoomId()) {
+            case 'lobby':
+                return (<Lobby />);
+            case 'idle':
+                return (<IdleRoom />);
+            default:
+                return (<IdleRoom />);
+        }
     }
 
     render() {
@@ -39,7 +49,7 @@ export default class Core extends AbstractComponent {
                 <PageHeader />
 
                 <div id="pageContent">
-                    <Lobby />
+                    {this.renderRoomScreen()}
                 </div>
             </div>
         );

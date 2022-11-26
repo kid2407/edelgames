@@ -7,3 +7,11 @@
   &center {   text-align: center;   justify-content: center; }
   &right {    text-align: right;    justify-content: flex-end; }
 }
+
+.primary-text {
+  color: $primary;
+}
+
+.signature-text {
+  color: $signature;
+}

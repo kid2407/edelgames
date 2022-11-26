@@ -65,12 +65,15 @@ export default class RoomListBox extends AbstractComponent {
             <div className="room-overview-box"
                  key={room.roomId}
                  style={{borderColor: roomColor}}>
+
                 <div className="room-overview-box--room-data"
                      style={{backgroundColor: roomColor}}>{room.roomName}
                 </div>
+
                 <div className="room-overview-box--member-list">
                     {room.roomMembers.map(this.renderMember.bind(this))}
                 </div>
+
             </div>
         );
     }

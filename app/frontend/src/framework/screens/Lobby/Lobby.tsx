@@ -1,9 +1,8 @@
 import React from "react";
-import RoomOverviewBox from "../components/RoomOverviewBox";
-import RoomListBox from "../components/RoomListBox";
-
+import RoomListBox from "../../components/RoomListBox";
 
 export default class Lobby extends React.Component {
+
 
     render() {
         return (

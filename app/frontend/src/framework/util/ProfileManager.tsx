@@ -16,7 +16,6 @@ export const ProfileEventNames: EventNameListObj = {
 type ServerProfileObject = {
     id: string;
     username: string;
-    screen: string;
     pictureUrl: string|null;
     verified: boolean;
     authSessionId: string|null;
@@ -28,7 +27,6 @@ export class ProfileManagerSingleton {
     private username: string = 'loading';
     private verified: boolean = false;
     private picture: string|null = null;
-    private screen: string = 'lobby';
     private authSessionId: string|null = null;
 
     constructor() {
@@ -51,7 +49,6 @@ export class ProfileManagerSingleton {
         this.username = data.username;
         this.verified = data.verified;
         this.picture = data.pictureUrl;
-        this.screen = data.screen;
         this.authSessionId = data.authSessionId;
 
         EventManager.publish(ProfileEventNames.profileUpdated);
@@ -60,7 +57,6 @@ export class ProfileManagerSingleton {
     public getUsername():    string      {return this.username; }
     public getId():          string      {return this.id;       }
     public getPicture():     string|null {return this.picture;  }
-    public getScreen():      string      {return this.screen;   }
     public isVerified():     boolean     {return this.verified; }
 
 

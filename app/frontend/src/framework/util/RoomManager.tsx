@@ -21,6 +21,7 @@ type ServerRoomObject = {
     roomId: string;
     roomName: string;
     roomMembers: ServerRoomMember[];
+    currentScreen: string;
 }
 
 
@@ -29,6 +30,7 @@ export class RoomManagerSingleton {
     private roomId: string = 'lobby';
     private roomName: string = 'Lobby';
     private roomMembers: User[] = [];
+    private currentScreen: string = 'lobby';
 
     constructor() {
         EventManager.subscribe(RoomEventNames.roomChangedEventNotified, this.onRoomChangedChannelNotified.bind(this))
@@ -37,6 +39,7 @@ export class RoomManagerSingleton {
     onRoomChangedChannelNotified(data: ServerRoomObject): void {
         this.roomId = data.roomId;
         this.roomName = data.roomName;
+        this.currentScreen = data.currentScreen;
 
         // calculate new room members
         let roomMembers : User[] = [];
@@ -56,7 +59,7 @@ export class RoomManagerSingleton {
     public getRoomId():         string { return this.roomId; }
     public getRoomName():       string { return this.roomName; }
     public getRoomMembers():    User[] { return this.roomMembers; }
-
+    public getCurrentScreen():  string {return this.currentScreen; }
 }
 
 const RoomManager = new RoomManagerSingleton();

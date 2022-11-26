@@ -1,6 +1,5 @@
 import logo_em from '../../media/images/logo_em.png';
 import React, {MouseEventHandler} from "react";
-import debug from "../util/debug";
 import {ProfileManagerSingleton} from "../util/ProfileManager";
 
 type LoginWindowProps = {
