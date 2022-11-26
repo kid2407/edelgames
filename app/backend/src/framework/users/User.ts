@@ -1,4 +1,5 @@
 import {Socket} from "socket.io";
+import cookie from 'cookie';
 import Room from "./Room";
 import SocketMessenger from "../util/SocketMessenger";
 import RoomManager from "./RoomManager";
@@ -11,6 +12,7 @@ export default class User {
     private currentScreen: string = "lobby"; // tells the client, which screen to display
     private currentRoom: Room|null = null;
     private pictureUrl: string|null = null;
+    private authSessionId: string|null = null;
     private readonly socket: Socket;
 
     constructor(socket: Socket) {
@@ -18,10 +20,24 @@ export default class User {
         this.id = this.createIdHash();
         this.name = 'guest_'+this.id;
         this.sendUserProfileChangedMessage();
+        this.checkSocketCookies();
 
         // register generic listeners
         SocketMessenger.subscribeEventToSocket(socket, 'userLoginAttempt', this.authenticate.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'refreshLobbyRoomData', this.refreshLobbyRoomData.bind(this));
+        SocketMessenger.subscribeEventToSocket(socket, 'createNewRoom', this.createNewRoom.bind(this));
+    }
+
+    checkSocketCookies() {
+        console.log(this.socket.handshake.headers.cookie);
+        let cookies = cookie.parse(this.socket.handshake.headers.cookie||'');
+        if(cookies.authSession) {
+            this.authenticate({
+                isAuthSessionId: true,
+                password: cookies.authSession,
+                username: ''
+            })
+        }
     }
 
     /** This will remove the user from its current room, hopefully leaving no reference behind. Thus allowing it to be cleared by the garbage collection
@@ -50,12 +66,14 @@ export default class User {
      * Switches the user to the given room. SocketIo allows for multiple rooms at once, but we only want one at a time, so we leave the last one
      */
     public async switchRoom(newRoom: Room): Promise<any> {
+        await this.socket.join(newRoom.getRoomId());
+
         if(this.currentRoom) {
             this.socket.leave(this.currentRoom.getRoomId());
             this.currentRoom.removeUserFromRoom(this);
         }
+
         this.currentRoom = newRoom;
-        await this.socket.join(newRoom.getRoomId());
     }
 
     public messageUser(eventName: string, data: object) {
@@ -66,13 +84,13 @@ export default class User {
         this.messageUser('profileChanged', {
             id: this.id,
             username: this.name,
-            screen: this.currentScreen,
             pictureUrl: this.pictureUrl,
-            verified: this.verified
+            verified: this.verified,
+            authSessionId: this.authSessionId
         })
     }
 
-    public authenticate(loginData: {username: string, password: string}): boolean {
+    public authenticate(loginData: {isAuthSessionId: boolean, username: string, password: string}): boolean {
         let {username, password} = loginData;
 
         if(this.verified) {
@@ -81,11 +99,14 @@ export default class User {
         }
 
         // todo try login with the xenforo api
+        // case 1: isAuthSessionId => false -> login with credentials
+        // case 2: isAuthSessionId => true  -> login with authSessionId in "password" and retrieve username from result
         let credentialsValid = true; // for now, let all attempts succeed
         if(credentialsValid) {
             this.verified = true;
-            this.name = username;
+            this.name = username || '[the username]'; // todo retrieve from api authentication
             this.pictureUrl = 'https://edelmaenner.net/data/avatars/m/0/324.jpg?1587625532'; // todo retrieve picture url
+            this.authSessionId = Math.random().toString().slice(2); // todo: the session identifier, which can be used to validate login instead of the the credentials
 
             // update data on client side
             this.sendUserProfileChangedMessage();
@@ -97,6 +118,12 @@ export default class User {
 
     public refreshLobbyRoomData() {
         SocketMessenger.directMessageToSocket(this.socket, 'lobbyRoomsChanged', RoomManager.getLobbyMemberRoomData());
+    }
+
+    public createNewRoom() {
+        if(this.verified && this.currentRoom.getRoomId() === 'lobby') {
+            RoomManager.createRoom(this);
+        }
     }
 
 }

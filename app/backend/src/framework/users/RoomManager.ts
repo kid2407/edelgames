@@ -7,6 +7,7 @@ export class RoomManagerSingleton {
 
     private readonly lobby: Lobby;
     private rooms: Room[] = [];
+    private screen: string;
 
     constructor() {
         // create lobby room
@@ -16,8 +17,8 @@ export class RoomManagerSingleton {
     // rooms require a user as the admin
     public createRoom(firstUser: User): void {
         let newRoom = new Room(firstUser);
-        firstUser.switchRoom(newRoom).then(newRoom.sendRoomChangedBroadcast);
         this.rooms.push(newRoom);
+        firstUser.switchRoom(newRoom).then(newRoom.sendRoomChangedBroadcast.bind(newRoom));
     }
 
     // rooms will be automatically removed, when the last user leaves

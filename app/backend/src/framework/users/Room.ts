@@ -14,6 +14,7 @@ export default class Room {
         this.roomId = this.createIdHash();
         this.roomName = 'room'+this.roomId;
         this.roomMaster = roomMaster;
+        if(roomMaster) this.roomMembers = [roomMaster];
     }
 
     public getRoomId():     string  {return this.roomId;}

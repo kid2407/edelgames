@@ -1,7 +1,7 @@
 import logo_em from '../../media/images/logo_em.png';
 import React, {MouseEventHandler} from "react";
 import debug from "../util/debug";
-import SocketManager from "../util/SocketManager";
+import {ProfileManagerSingleton} from "../util/ProfileManager";
 
 type LoginWindowProps = {
     show: boolean,
@@ -22,12 +22,7 @@ export default class LoginWindow extends React.Component<LoginWindowProps, {}> {
             return;
         }
 
-        SocketManager.sendEvent('userLoginAttempt', {
-            username: username,
-            password: password
-        })
-
-        debug(`Try Login as ${username} with "${password}"`);
+        ProfileManagerSingleton.attemptAuthentication(false, username, password);
     }
 
     render() {

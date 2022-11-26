@@ -4,6 +4,8 @@
   border: 1px solid white;
   width: fit-content;
   border-radius: 4px;
+  flex: 1 0 25%;
+  min-width: 25%;
 
   & > &--room-data {
     background-color: rgba($white, 0.2);

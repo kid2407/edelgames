@@ -4,6 +4,7 @@ import {RoomEventNames, ServerRoomMember} from "../util/RoomManager";
 import AbstractComponent from "./AbstractComponent";
 import ProfileImage from "./ProfileImage";
 import SocketManager from "../util/SocketManager";
+import ProfileManager from "../util/ProfileManager";
 
 type ForeignRoomObject = {
     roomId: string;
@@ -65,7 +66,8 @@ export default class RoomListBox extends AbstractComponent {
                  key={room.roomId}
                  style={{borderColor: roomColor}}>
                 <div className="room-overview-box--room-data"
-                     style={{backgroundColor: roomColor}}>{room.roomName}</div>
+                     style={{backgroundColor: roomColor}}>{room.roomName}
+                </div>
                 <div className="room-overview-box--member-list">
                     {room.roomMembers.map(this.renderMember.bind(this))}
                 </div>
@@ -73,10 +75,24 @@ export default class RoomListBox extends AbstractComponent {
         );
     }
 
+    onCreateRoom() {
+        SocketManager.sendEvent('createNewRoom', {});
+    }
+
     render() {
         return (
             <div id="roomListBox">
                 {this.state.rooms.map(this.renderRoom.bind(this))}
+
+                {!ProfileManager.isVerified() ? null :
+                    <div className="room-overview-box room-create-box">
+
+                        <div className="room-overview-box--room-data">Create Room</div>
+                        <div className="room-overview-box--member-list"
+                             onClick={this.onCreateRoom.bind(this)}>+</div>
+
+                    </div>
+                }
             </div>
         );
     }
