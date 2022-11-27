@@ -1,6 +1,6 @@
 import Room from "./Room";
 import User from "./User";
-import SocketMessenger from "../util/SocketMessenger";
+import SocketMessenger from "./util/SocketMessenger";
 import Lobby from "./Lobby";
 
 export class RoomManagerSingleton {
@@ -54,6 +54,7 @@ export class RoomManagerSingleton {
                 roomId: room.getRoomId(),
                 roomName: room.getRoomName(),
                 roomMembers: room.getPublicRoomMemberList(),
+                roomUsePassword: room.getRoomPassword() !== null
             });
         }
         return roomData;

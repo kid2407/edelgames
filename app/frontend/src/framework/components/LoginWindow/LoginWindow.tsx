@@ -1,6 +1,6 @@
-import logo_em from '../../media/images/logo_em.png';
+import logo_em from '../../../media/images/logo_em.png';
 import React, {MouseEventHandler} from "react";
-import {ProfileManagerSingleton} from "../util/ProfileManager";
+import {ProfileManagerSingleton} from "../../util/ProfileManager";
 
 type LoginWindowProps = {
     show: boolean,

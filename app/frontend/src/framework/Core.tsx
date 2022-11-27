@@ -1,5 +1,5 @@
 import React from 'react';
-import PageHeader from "./components/PageHeader";
+import PageHeader from "./components/PageHeader/PageHeader";
 import EventManagerSingleton from "./util/EventManager";
 import AbstractComponent from "./components/AbstractComponent";
 import Lobby from "./screens/Lobby/Lobby";

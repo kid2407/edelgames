@@ -1,5 +1,5 @@
 import User from "./User";
-import SocketMessenger from "../util/SocketMessenger";
+import SocketMessenger from "./util/SocketMessenger";
 import RoomManager from "./RoomManager";
 
 export default class Room {
@@ -84,6 +84,8 @@ export default class Room {
         else if (this.roomMaster === user) {
             this.roomMaster = this.roomMembers[0];
         }
+
+        this.sendRoomChangedBroadcast();
     }
 
     getPublicRoomMemberList(): object[] {

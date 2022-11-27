@@ -10,6 +10,11 @@
   & > &--room-data {
     background-color: rgba($white, 0.2);
     padding: 0.5rem;
+
+    span + span {
+      margin-left: 1rem;
+    }
+
   }
 
   & > &--member-list {

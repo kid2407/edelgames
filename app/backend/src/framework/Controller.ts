@@ -1,7 +1,7 @@
 import SocketMessenger from "./util/SocketMessenger";
 import {Server, Socket} from "socket.io";
-import User from "./users/User";
-import RoomManager from "./users/RoomManager";
+import User from "./User";
+import RoomManager from "./RoomManager";
 
 export default class Controller {
 

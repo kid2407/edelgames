@@ -1,11 +1,11 @@
-import {ProfileEventNames} from "../util/ProfileManager";
-import AbstractComponent from "./AbstractComponent";
-import ProfileImage from "./ProfileImage";
-import EventManager from "../util/EventManager";
-import ProfileManager from "../util/ProfileManager";
-import RoomManager from "../util/RoomManager";
-import LoginWindow from "./LoginWindow";
-import SocketManager from "../util/SocketManager";
+import {ProfileEventNames} from "../../util/ProfileManager";
+import AbstractComponent from "../AbstractComponent";
+import ProfileImage from "../ProfileImage/ProfileImage";
+import EventManager from "../../util/EventManager";
+import ProfileManager from "../../util/ProfileManager";
+import RoomManager from "../../util/RoomManager";
+import LoginWindow from "../LoginWindow/LoginWindow";
+import SocketManager from "../../util/SocketManager";
 
 type PageHeaderState = {
     showLoginWindow: boolean

@@ -15,11 +15,11 @@
 /*
  * Component style files, containing specific styles for a single component
  */
-@import "../components/PageHeader";
-@import "../components/LoginWindow";
-@import "../components/RoomOverviewBox";
-@import "../components/RoomListBox";
-@import "../components/ProfileImage";
+@import "src/framework/components/PageHeader/PageHeader";
+@import "src/framework/components/LoginWindow/LoginWindow";
+@import "src/framework/components/RoomOverviewBox/RoomOverviewBox";
+@import "src/framework/components/RoomListBox/RoomListBox";
+@import "src/framework/components/ProfileImage/ProfileImage";
 
 /*
  * Screen style files, containing specific styles for a single page

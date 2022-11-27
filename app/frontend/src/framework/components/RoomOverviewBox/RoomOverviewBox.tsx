@@ -1,10 +1,15 @@
 import React from "react";
-import EventManager from "../util/EventManager";
-import RoomManager, {RoomEventNames} from "../util/RoomManager";
-import AbstractComponent from "./AbstractComponent";
-import User from "../util/User";
-import ProfileImage from "./ProfileImage";
-import ProfileManager from "../util/ProfileManager";
+import EventManager from "../../util/EventManager";
+import RoomManager, {RoomEventNames} from "../../util/RoomManager";
+import AbstractComponent from "../AbstractComponent";
+import User from "../../util/User";
+import ProfileImage from "../ProfileImage/ProfileImage";
+import ProfileManager from "../../util/ProfileManager";
+
+/*
+ * @description
+ * Used for displaying infos about the current room and its members
+ */
 
 export default class RoomOverviewBox extends AbstractComponent {
 

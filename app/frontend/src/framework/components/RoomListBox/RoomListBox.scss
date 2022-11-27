@@ -3,11 +3,18 @@
   .room-overview-box {
     margin-bottom: 1rem;
 
+    .room-overview-box--room-data {
+      .room-join-button {
+        cursor: pointer;
+      }
+    }
+
     &.room-create-box {
       border-color: $backgroundLight;
 
       .room-overview-box--room-data {
         background-color: $backgroundLight;
+        display: flex;
       }
 
       .room-overview-box--member-list {

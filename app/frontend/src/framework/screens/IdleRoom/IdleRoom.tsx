@@ -1,5 +1,5 @@
 import React from "react";
-import RoomOverviewBox from "../../components/RoomOverviewBox";
+import RoomOverviewBox from "../../components/RoomOverviewBox/RoomOverviewBox";
 
 export default class IdleRoom extends React.Component {
 

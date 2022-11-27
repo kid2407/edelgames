@@ -1,7 +1,7 @@
 import {Socket} from "socket.io";
 import cookie from 'cookie';
 import Room from "./Room";
-import SocketMessenger from "../util/SocketMessenger";
+import SocketMessenger from "./util/SocketMessenger";
 import RoomManager from "./RoomManager";
 
 export default class User {
@@ -26,6 +26,7 @@ export default class User {
         SocketMessenger.subscribeEventToSocket(socket, 'refreshLobbyRoomData', this.refreshLobbyRoomData.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'createNewRoom', this.createNewRoom.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'returnToLobby', this.returnToLobby.bind(this));
+        SocketMessenger.subscribeEventToSocket(socket, 'joinRoom', this.joinRoom.bind(this));
     }
 
     checkSocketCookies() {
@@ -129,6 +130,14 @@ export default class User {
         if(this.currentRoom.getRoomId() !== 'lobby') {
             RoomManager.getLobbyRoom().joinRoom(this);
         }
+    }
+
+    public joinRoom(data: any) {
+        if(this.currentRoom.getRoomId() !== 'lobby') {
+            return;
+        }
+
+        RoomManager.getRoomById(data.roomId).joinRoom(this, data.password);
     }
 
 }
