@@ -11,7 +11,7 @@ services:
       - "${REACT_HTTP_PORT}:${REACT_HTTP_PORT}"
     expose:
       - "${REACT_HTTP_PORT}"
-    command: "./start_dev.sh"
+    command: "npm run start"
     env_file:
       - ./.env
 
@@ -24,6 +24,6 @@ services:
       - "${API_HTTP_PORT}:${API_HTTP_PORT}"
     expose:
       - "${API_HTTP_PORT}"
-    command: "./start_dev.sh"
+    command: "npm run dev"
     env_file:
       - ./.env
