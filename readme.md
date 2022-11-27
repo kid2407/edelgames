@@ -32,6 +32,10 @@ ReactJS supports Hotloading out of the box. The Backend uses nodemon to detect a
 7. Remember to drink water, stay hydrated!
 8. Go to step 2
 
+### Deployment
+1. After your feature has been merged into the main repository, create a new version tag and merge the new state into the main branch
+2. tbd
+
 
 # Project standards
 
