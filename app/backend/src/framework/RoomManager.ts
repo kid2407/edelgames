@@ -7,7 +7,7 @@ export class RoomManagerSingleton {
 
     private readonly lobby: Lobby;
     private rooms: Room[] = [];
-    private screen: string;
+
 
     constructor() {
         // create lobby room

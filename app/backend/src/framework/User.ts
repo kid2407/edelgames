@@ -1,5 +1,4 @@
 import {Socket} from "socket.io";
-import cookie from 'cookie';
 import Room from "./Room";
 import SocketMessenger from "./util/SocketMessenger";
 import RoomManager from "./RoomManager";
@@ -19,7 +18,6 @@ export default class User {
         this.id = this.createIdHash();
         this.name = 'guest_'+this.id;
         this.sendUserProfileChangedMessage();
-        this.checkSocketCookies();
 
         // register generic listeners
         SocketMessenger.subscribeEventToSocket(socket, 'userLoginAttempt', this.authenticate.bind(this));
@@ -27,18 +25,6 @@ export default class User {
         SocketMessenger.subscribeEventToSocket(socket, 'createNewRoom', this.createNewRoom.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'returnToLobby', this.returnToLobby.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'joinRoom', this.joinRoom.bind(this));
-    }
-
-    checkSocketCookies() {
-        console.log(this.socket.handshake.headers.cookie);
-        let cookies = cookie.parse(this.socket.handshake.headers.cookie||'');
-        if(cookies.authSession) {
-            this.authenticate({
-                isAuthSessionId: true,
-                password: cookies.authSession,
-                username: ''
-            })
-        }
     }
 
     /** This will remove the user from its current room, hopefully leaving no reference behind. Thus allowing it to be cleared by the garbage collection
