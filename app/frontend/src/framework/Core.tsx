@@ -7,6 +7,7 @@ import SocketManager, {SocketEventNames, SocketManagerSingleton} from "./util/So
 import ProfileManager, {ProfileManagerSingleton} from "./util/ProfileManager";
 import RoomManager, {RoomEventNames} from "./util/RoomManager";
 import IdleRoom from "./screens/IdleRoom/IdleRoom";
+import GameRoom from "./screens/GameRoom/GameRoom";
 
 
 export default class Core extends AbstractComponent {
@@ -29,6 +30,8 @@ export default class Core extends AbstractComponent {
         switch (RoomManager.getRoomId()) {
             case 'lobby':
                 return (<Lobby />);
+            case 'game':
+                return (<GameRoom />);
             case 'idle':
                 return (<IdleRoom />);
             default:

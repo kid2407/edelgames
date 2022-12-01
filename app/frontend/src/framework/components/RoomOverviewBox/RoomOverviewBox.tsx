@@ -25,7 +25,7 @@ export default class RoomOverviewBox extends AbstractComponent {
 
     renderMember(member: User) {
         return (
-            <div className="member-list-row">
+            <div className="member-list-row" key={member.getId()}>
                 <ProfileImage picture={member.getPicture()}
                               username={member.getUsername()}
                               id={member.getId()} />

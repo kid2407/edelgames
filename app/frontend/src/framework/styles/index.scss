@@ -20,8 +20,11 @@
 @import "src/framework/components/RoomOverviewBox/RoomOverviewBox";
 @import "src/framework/components/RoomListBox/RoomListBox";
 @import "src/framework/components/ProfileImage/ProfileImage";
+@import "src/framework/components/GameSelection/GameSelection";
 
 /*
  * Screen style files, containing specific styles for a single page
  */
 @import "src/framework/screens/Lobby/Lobby";
+@import "src/framework/screens/IdleRoom/IdleRoom";
+//@import "src/framework/screens/GameRoom/GameRoom";
