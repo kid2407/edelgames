@@ -1,6 +1,7 @@
 import Room from "../Room";
 import SocketMessenger from "../util/SocketMessenger";
 import ModuleGameInterface from "./ModuleGameInterface";
+import debug from "../util/debug";
 
 type internalEventDataObject = {
     [key: string]: any
@@ -30,6 +31,8 @@ export default class ModuleRoomApi {
         this.game = game;
         this.gameId = gameId;
         this.room = room;
+        this.room.setCurrentGame(this);
+        game.onGameInitialize(this);
     }
 
     public getGameId(): string {
@@ -40,19 +43,23 @@ export default class ModuleRoomApi {
      * This method will be called automatically, every time an event is triggered.
      * It can also be used to manage internal events for the current game
      */
-    public alertEvent(eventName: string, eventData: internalEventDataObject|null = null) {
-        if(this.eventListeners[eventName]) {
-            for(let listener of this.eventListeners[eventName]) {
+    public alertEvent(eventName: string, eventData: internalEventDataObject|null = null, skipPrefix: boolean = false) {
+        let event = skipPrefix ? eventName : this.getGameId()+'_'+eventName;
+        if(this.eventListeners[event]) {
+            for(let listener of this.eventListeners[event]) {
                 listener(eventData);
             }
         }
     }
 
     public addEventHandler(eventName: string, handler: internalEventHandlerFunction) {
-        if(!this.eventListeners[eventName]) {
-            this.eventListeners[eventName] = [];
+        let event = this.getGameId()+'_'+eventName;
+        if(!this.eventListeners[event]) {
+            this.eventListeners[event] = [];
         }
-        this.eventListeners[eventName].push(handler);
+        this.eventListeners[event].push(handler);
+
+        debug(1,'registering eventlistener for ' + event);
     }
 
     // just an alias for addEventHandler('userJoined', handler) for better usability
@@ -65,12 +72,9 @@ export default class ModuleRoomApi {
         this.addEventHandler('userLeft', handler);
     }
 
-    /*
-     * Adds a handler for all messages, that the frontend game module can send to the server
-     * For better usability, these messages can be assigned a messageTypeId. Essentially separating multiple messages from one another
-     */
-    public addUserMessageReceivedHandler(messageTypeId: string, handler: internalUserEventHandlerFunction) {
-        this.addEventHandler('userMessage_'+messageTypeId+'_Received', handler);
+    // just an alias for addEventHandler('gameStopped', handler) for better usability
+    public addGameStoppedHandler(handler: internalEventHandlerFunction) {
+        this.addEventHandler('gameStopped', handler);
     }
 
     public sendRoomMessage(eventName: string, eventData: ({[key: string]: any})): void {

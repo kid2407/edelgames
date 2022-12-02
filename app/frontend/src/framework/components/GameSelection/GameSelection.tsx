@@ -13,7 +13,7 @@ export default class GameSelection extends React.Component {
         let roomMaster = RoomManager.getRoomMaster();
         if(roomMaster && roomMaster.getId() === ProfileManager.getId()) {
             // only the administrator should be able to select a game
-            SocketManager.sendEvent('start_game', {gameId: gameId});
+            SocketManager.sendEvent('startGame', {gameId: gameId});
         }
     }
 

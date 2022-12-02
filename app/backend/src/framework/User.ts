@@ -3,6 +3,7 @@ import Room from "./Room";
 import SocketMessenger from "./util/SocketMessenger";
 import RoomManager from "./RoomManager";
 import debug from "./util/debug";
+import ModuleRegistry from "./modules/ModuleRegistry";
 
 export default class User {
 
@@ -26,7 +27,8 @@ export default class User {
         SocketMessenger.subscribeEventToSocket(socket, 'createNewRoom', this.createNewRoom.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'returnToLobby', this.returnToLobby.bind(this));
         SocketMessenger.subscribeEventToSocket(socket, 'joinRoom', this.joinRoom.bind(this));
-        SocketMessenger.subscribeEventToSocket(socket, 'receiveGameMessage', this.onReceivedGameMessage.bind(this));
+        SocketMessenger.subscribeEventToSocket(socket, 'startGame', this.startGame.bind(this));
+        SocketMessenger.subscribeEventToSocket(socket, 'clientToServerGameMessage', this.onReceivedGameMessage.bind(this));
     }
 
     /** This will remove the user from its current room, hopefully leaving no reference behind. Thus allowing it to be cleared by the garbage collection
@@ -124,12 +126,18 @@ export default class User {
         }
     }
 
-    public joinRoom(data: any) {
+    public joinRoom(data: {roomId: string, password: string|undefined|null}) {
         if(this.currentRoom.getRoomId() !== 'lobby') {
             return;
         }
 
         RoomManager.getRoomById(data.roomId).joinRoom(this, data.password);
+    }
+
+    public startGame(data: {gameId: string}) {
+        if(this.currentRoom && this.currentRoom.getRoomMaster() === this && this.currentRoom.getCurrentGameId() === null) {
+            ModuleRegistry.createGame(this.currentRoom, data.gameId);
+        }
     }
 
     public onReceivedGameMessage(eventData: {messageTypeId: string, [key: string]: any}) {

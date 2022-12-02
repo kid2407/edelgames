@@ -26,6 +26,7 @@ export default class Room {
     public getRoomName():       string      {return this.roomName;}
     public getRoomMembers():    User[]      {return this.roomMembers}
     public getRoomPassword():   string|null {return this.roomPassword}
+    public getCurrentGameId():  string|null {return this.currentModuleRoomApi ? this.currentModuleRoomApi.getGameId() : null}
     public getRoomMaster():     User|null   {
         // if we don´t have a room master, we select another user as the room master
         if(this.roomMaster === null && this.roomMembers.length > 0) {
@@ -40,6 +41,11 @@ export default class Room {
     }
 
     public setCurrentGame(roomApi: ModuleRoomApi|null) {
+        if(this.currentModuleRoomApi && roomApi === null) {
+            this.currentModuleRoomApi.alertEvent('gameStopped', {});
+            debug(1, `stopped current game ${this.currentModuleRoomApi.getGameId()} in room ${this.roomId}`);
+        }
+
         this.currentModuleRoomApi = roomApi;
         this.sendRoomChangedBroadcast();
 
@@ -48,10 +54,10 @@ export default class Room {
 
     public onUserNotifiedGame(userId: string, eventName: string, eventData: {[key: string]: any}) {
         if(this.currentModuleRoomApi) {
-            this.currentModuleRoomApi.alertEvent('userMessage_'+eventName+'_Received', {
+            this.currentModuleRoomApi.alertEvent(eventName, {
                 senderId: userId,
                 ...eventData
-            });
+            }, true);
             debug(1, `user ${userId} notified the gameEvent ${eventName}`);
         }
     }
@@ -64,7 +70,7 @@ export default class Room {
             roomId: this.roomId,
             roomName: this.roomName,
             roomMembers: this.getPublicRoomMemberList(),
-            currentGameId: this.currentModuleRoomApi ? this.currentModuleRoomApi.getGameId() : 'idle'
+            currentGameId: this.currentModuleRoomApi ? this.currentModuleRoomApi.getGameId() : null
         });
 
         RoomManager.updateLobbyMembersRoomData();
@@ -124,6 +130,7 @@ export default class Room {
         }
 
         if(this.getMemberCount() === 0) {
+            this.setCurrentGame(null);
             RoomManager.removeRoom(this);
         }
         else if (this.roomMaster === user) {

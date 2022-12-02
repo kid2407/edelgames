@@ -6,12 +6,15 @@ import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
  */
 export default class ExampleChatGame implements ModuleGameInterface {
 
-    onGameInitialize(roomApi: ModuleRoomApi): void {
+    roomApi: ModuleRoomApi|null = null;
 
+    onGameInitialize(roomApi: ModuleRoomApi): void {
+        this.roomApi = roomApi;
+        this.roomApi.addEventHandler('userMessageSend', this.onUserMessageReceived.bind(this));
     }
 
-    onGameEnd(): void {
-        // here you can clean up some data or do other stuff, after the game ended
+    onUserMessageReceived(eventData: any) {
+        console.log(eventData);
     }
 
 }
