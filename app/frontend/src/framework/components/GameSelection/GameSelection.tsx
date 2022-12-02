@@ -4,6 +4,7 @@ import ModuleInterface from "../../modules/ModuleInterface";
 import RoomManager from "../../util/RoomManager";
 import ProfileManager from "../../util/ProfileManager";
 import debug from "../../util/debug";
+import SocketManager from "../../util/SocketManager";
 
 
 export default class GameSelection extends React.Component {
@@ -12,12 +13,11 @@ export default class GameSelection extends React.Component {
         let roomMaster = RoomManager.getRoomMaster();
         if(roomMaster && roomMaster.getId() === ProfileManager.getId()) {
             // only the administrator should be able to select a game
-            debug("Clicked on game: " + gameId);
+            SocketManager.sendEvent('start_game', {gameId: gameId});
         }
     }
 
     render() {
-
         let gameList = ModuleRegistry.getModuleList();
 
         return(

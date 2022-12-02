@@ -2,6 +2,7 @@ import SocketMessenger from "./util/SocketMessenger";
 import {Server, Socket} from "socket.io";
 import User from "./User";
 import RoomManager from "./RoomManager";
+import debug from "./util/debug";
 
 export default class Controller {
 
@@ -22,12 +23,12 @@ export default class Controller {
 
         // debug output
         Controller.connectedUsers++;
-        console.log(`user ${socket.id} (${user.getUsername()}) connected! (${Controller.connectedUsers} users in total)`);
+        debug(2, `user ${socket.id} (${user.getUsername()}) connected! (${Controller.connectedUsers} users in total)`);
     }
 
     onDisconnect(socket: Socket, user: User): void {
         Controller.connectedUsers--;
-        console.log(`user ${socket.id} (${user.getUsername()}) disconnected! (${Controller.connectedUsers} users remaining)`);
+        debug(2, `user ${socket.id} (${user.getUsername()}) disconnected! (${Controller.connectedUsers} users remaining)`);
         user.destroyUser();
     }
 
