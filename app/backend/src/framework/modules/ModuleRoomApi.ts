@@ -78,12 +78,20 @@ export default class ModuleRoomApi {
     }
 
     public sendRoomMessage(eventName: string, eventData: ({[key: string]: any})): void {
-        SocketMessenger.broadcast(this.room.getRoomId(), eventName, eventData);
+        let event = this.getGameId()+'_'+eventName;
+        SocketMessenger.broadcast(this.room.getRoomId(), 'ServerToClientGameMessage', {
+            messageTypeId: event,
+            ...eventData
+        });
     }
 
     public sendPlayerMessage(playerId: string, eventName: string, eventData: ({[key: string]: any})): void {
+        let event = this.getGameId()+'_'+eventName;
         let user = this.room.getRoomMembers().find(user => user.getId() === playerId);
-        SocketMessenger.directMessageToSocket(user.getSocket(), eventName, eventData);
+        SocketMessenger.directMessageToSocket(user.getSocket(), 'ServerToClientGameMessage', {
+            messageTypeId: event,
+            ...eventData
+        });
     }
 
     // this will cancel / stop / end the current game instance and return the members back to the game select (idle) room

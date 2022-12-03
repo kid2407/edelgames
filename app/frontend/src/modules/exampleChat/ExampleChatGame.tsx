@@ -12,20 +12,22 @@ export default class ExampleChatGame extends Component implements ModuleGameInte
     constructor(props: any) {
         super(props);
         this.gameApi = new ModuleGameApi(exampleChat, this);
+        this.gameApi.addEventHandler('serverMessageSend', this.onReceiveMessage.bind(this));
     }
 
     onSendMessage() {
         if(!this.inputElement) return;
 
         // messages send by the gameApi are automatically assigned to this module and will not be interpreted by any other game
-        // messages, that were send by the user get the prefix "userMessage_"
         this.gameApi.sendMessageToServer('userMessageSend', {
             message: this.inputElement.value
         });
     }
 
-    onReceiveMessage() {
-
+    onReceiveMessage(eventData: {[key: string]: any}) {
+        let textMessage = document.createElement('div');
+        textMessage.innerText = eventData.message;
+        this.chatHistory?.appendChild(textMessage);
     }
 
     render() {
