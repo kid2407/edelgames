@@ -3,19 +3,12 @@ import SocketManager from "../util/SocketManager";
 import ModuleInterface from "./ModuleInterface";
 import EventManager from "../util/EventManager";
 import RoomManager from "../util/RoomManager";
-import {Simulate} from "react-dom/test-utils";
-import play = Simulate.play;
 import User from "../util/User";
 
 type internalEventDataObject = {
         [key: string]: any
 }
-type internalUserMessageEventDataObject = {
-    senderId: string,
-    [key: string]: any
-}
 type internalEventHandlerFunction = (eventData: internalEventDataObject) => void;
-type internalUserEventHandlerFunction = (eventData: internalUserMessageEventDataObject) => void;
 type internalEventList = {
     [key: string]: internalEventHandlerFunction[]
 }
@@ -71,8 +64,7 @@ export default class ModuleGameApi {
         });
     }
 
-
-    public getPlayerDataById(playerId: string): User|undefined {
+    public getUserDataById(playerId: string): User|undefined {
         return RoomManager.getRoomMembers().find(member => member.getId() === playerId);
     }
 }

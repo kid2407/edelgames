@@ -4,14 +4,6 @@
   flex-wrap: wrap;
   gap: 1rem;
 
-  // scrollbar - firefox
-  scrollbar-width: none;
-  // scrollbar - webkit
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-
 
   .game-preview {
     flex: 1 1 25%;

@@ -1,7 +1,6 @@
 import React from "react";
 import RoomManager from "../../util/RoomManager";
 import ModuleRegistry from "../../modules/ModuleRegistry";
-import ModuleGameApi from "../../modules/ModuleGameApi";
 
 export default class GameRoom extends React.Component {
 
@@ -11,16 +10,14 @@ export default class GameRoom extends React.Component {
 
         if(!currentGameModule) {
             return (
-                <div id="screen">
+                <div id="screenGame">
                     404 - Game not found
                 </div>
             );
         }
 
-
-
         return (
-            <div id="screen">
+            <div id="screenGame">
                 {currentGameModule.renderGame()}
             </div>
         );

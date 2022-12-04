@@ -27,4 +27,9 @@
  */
 @import "src/framework/screens/Lobby/Lobby";
 @import "src/framework/screens/IdleRoom/IdleRoom";
-//@import "src/framework/screens/GameRoom/GameRoom";
+@import "src/framework/screens/GameRoom/GameRoom";
+
+/*
+ * Default import for modules
+ */
+@import "../../modules/Modules";

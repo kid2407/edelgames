@@ -3,7 +3,6 @@ import ModuleRegistry from "../../modules/ModuleRegistry";
 import ModuleInterface from "../../modules/ModuleInterface";
 import RoomManager from "../../util/RoomManager";
 import ProfileManager from "../../util/ProfileManager";
-import debug from "../../util/debug";
 import SocketManager from "../../util/SocketManager";
 
 
@@ -21,7 +20,7 @@ export default class GameSelection extends React.Component {
         let gameList = ModuleRegistry.getModuleList();
 
         return(
-            <div id="gameSelection">
+            <div id="gameSelection" className={"no-scrollbar"}>
                 {gameList.map(this.renderGameIcon.bind(this))}
             </div>
         );
