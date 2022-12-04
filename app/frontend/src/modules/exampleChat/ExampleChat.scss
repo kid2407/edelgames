@@ -1,0 +1,80 @@
+#exampleChat {
+  $bubbleColor: desaturate($primary, 20%);
+
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .chat-history {
+    padding: 1rem;
+    background-color: $backgroundDark;
+    flex: 1 1 100%;
+    overflow-y: scroll;
+
+    .chat-message {
+      border-radius: 0;
+      flex: 1 1 50%;
+      border: none;
+
+      &.own-message {
+        text-align: right;
+
+        & .message-bubble:before {
+          border-right-color: transparent;
+          border-left-color: $bubbleColor;
+          border-right-width: 0.7rem;
+
+          right: -.5rem;
+          left: auto;
+        }
+      }
+
+      .message-bubble {
+        display: inline-block;
+        background: $bubbleColor;
+        padding: 0.3rem 1rem 0.5rem 1rem;
+        border-radius: 14px;
+        position: relative;
+        z-index: 1;
+        margin-bottom: 0.5rem;
+
+        &:before {
+          content: '';
+          display: inline-block;
+          position: absolute;
+          left: -.5rem;
+          bottom: 0;
+
+          border: 1rem solid transparent;
+          border-right-color: $bubbleColor;
+          border-bottom-color: $bubbleColor;
+          border-left-width: 0.7rem;
+
+          z-index: -1;
+        }
+
+        .message-header {
+          font-size: 0.6rem;
+          white-space: nowrap;
+          color: lighten($primary, 70%)
+        }
+      }
+    }
+
+  }
+
+  .chat-input {
+    display: flex;
+
+    input[type=text] {
+      height: 2rem;
+      padding: 0 1rem;
+      flex: 1 1 50%;
+      border-radius: 0;
+      border: none;
+      outline: none;
+    }
+  }
+
+}
