@@ -6,9 +6,7 @@ export default class Lobby extends React.Component {
 
     render() {
         return (
-            <div id="screen">
-                <h1>Welcome to the lobby</h1>
-
+            <div id="screenLobby">
                 <RoomListBox />
             </div>
         );
