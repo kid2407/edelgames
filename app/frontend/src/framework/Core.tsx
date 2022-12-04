@@ -7,6 +7,7 @@ import SocketManager, {SocketEventNames, SocketManagerSingleton} from "./util/So
 import ProfileManager, {ProfileManagerSingleton} from "./util/ProfileManager";
 import RoomManager, {RoomEventNames} from "./util/RoomManager";
 import IdleRoom from "./screens/IdleRoom/IdleRoom";
+import GameRoom from "./screens/GameRoom/GameRoom";
 
 
 export default class Core extends AbstractComponent {
@@ -26,14 +27,18 @@ export default class Core extends AbstractComponent {
 
 
     renderRoomScreen() {
-        switch (RoomManager.getRoomId()) {
-            case 'lobby':
-                return (<Lobby />);
-            case 'idle':
-                return (<IdleRoom />);
-            default:
-                return (<IdleRoom />);
+        // if our current room is the lobby, show the lobby object
+        if(RoomManager.getRoomId() === 'lobby') {
+            return (<Lobby />);
         }
+
+        // if there is any game id selected, show the game room
+        if(RoomManager.getCurrentGameId()) {
+            return (<GameRoom />);
+        }
+
+        // if we are not in the lobby and don't have a selected game, show the idle room
+        return (<IdleRoom />);
     }
 
     render() {

@@ -21,7 +21,7 @@ type ServerRoomObject = {
     roomId: string;
     roomName: string;
     roomMembers: ServerRoomMember[];
-    currentScreen: string;
+    currentGameId: string;
 }
 
 
@@ -30,7 +30,8 @@ export class RoomManagerSingleton {
     private roomId: string = 'lobby';
     private roomName: string = 'Lobby';
     private roomMembers: User[] = [];
-    private currentScreen: string = 'lobby';
+    private roomMaster: User|null = null;
+    private currentGameId: string = '';
 
     constructor() {
         EventManager.subscribe(RoomEventNames.roomChangedEventNotified, this.onRoomChangedChannelNotified.bind(this))
@@ -39,27 +40,34 @@ export class RoomManagerSingleton {
     onRoomChangedChannelNotified(data: ServerRoomObject): void {
         this.roomId = data.roomId;
         this.roomName = data.roomName;
-        this.currentScreen = data.currentScreen;
+        this.currentGameId = data.currentGameId;
 
         // calculate new room members
         let roomMembers : User[] = [];
         for(let member of data.roomMembers) {
-            roomMembers.push(new User(
+            let user = new User(
                 member.id,
                 member.username,
                 member.picture,
                 member.isRoomMaster
-            ));
+            );
+
+            if(member.isRoomMaster) {
+                this.roomMaster = user;
+            }
+
+            roomMembers.push(user);
         }
         this.roomMembers = roomMembers;
 
         EventManager.publish(RoomEventNames.roomUpdated);
     }
 
-    public getRoomId():         string { return this.roomId; }
-    public getRoomName():       string { return this.roomName; }
-    public getRoomMembers():    User[] { return this.roomMembers; }
-    public getCurrentScreen():  string {return this.currentScreen; }
+    public getRoomId():         string      { return this.roomId; }
+    public getRoomName():       string      { return this.roomName; }
+    public getRoomMembers():    User[]      { return this.roomMembers; }
+    public getRoomMaster():     User|null   { return this.roomMaster; }
+    public getCurrentGameId():  string      {return this.currentGameId; }
 }
 
 const RoomManager = new RoomManagerSingleton();
