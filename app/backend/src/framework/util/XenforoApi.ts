@@ -11,7 +11,7 @@ export type authDataContainer = {
     profileImageUrl: string
 }
 
-type authRequestCallbackFunction = (success: boolean, authData: null|authDataContainer) => void;
+type authRequestCallbackFunction = (success: boolean, authData: null | authDataContainer) => void;
 
 const edelmaennerHost = 'edelmaenner.net';
 const edelmaennerLoginPath = '/login/login';
@@ -30,11 +30,8 @@ export default class XenforoApi {
             cookie_check: 0
         };
 
-        let formData = querystring.stringify(form).replace('%20','+');
+        let formData = querystring.stringify(form).replace('%20', '+');
         let contentLength = formData.length;
-
-        // todo: this does not work, as we get back an error every time!
-        // next step: check if validation is possible with another manual request (postman, insomnia, etc.)
 
         let req = https.request({
             host: edelmaennerHost,
@@ -56,37 +53,58 @@ export default class XenforoApi {
      * @param cookie
      * @param result
      */
-    public static onAuthResponse(callback: authRequestCallbackFunction, cookie: string|null, result: IncomingMessage): void {
-            /*
-                'set-cookie': [
-                    'xf_session=0123456789abcdef; path=/; secure; HttpOnly'
-                ],
-            */
+    public static onAuthResponse(callback: authRequestCallbackFunction, cookie: string | null, result: IncomingMessage): void {
+        /*d
+            'set-cookie': [
+                'xf_session=0123456789abcdef; path=/; secure; HttpOnly'
+            ],
+        */
 
-        if(result.statusCode !== 200) {
+        debug(0, result.statusCode)
+
+        if (result.statusCode !== 303 && result.statusCode !== 200) {
             callback(false, null);
             return;
         }
+        // Login erfolgreich, wir haben den redirect bekommen oder haben uns via authId eingeloggt
+        debug(0, "Login erfolgreich!")
 
-        if(!cookie) {
+        if (!cookie) {
             let cookieList = result.headers["set-cookie"];
             let cookieString = cookieList.find(cooString => cooString.indexOf('xf_session=') !== -1);
-            if(!cookieString) {
+            if (!cookieString) {
                 callback(false, null);
                 return;
             }
 
             let cookieMatch = cookieString.match(/xf_session=([a-z,0-9]*);/);
-            if(!cookieMatch || !cookieMatch[1]) {
+            if (!cookieMatch || !cookieMatch[1]) {
                 callback(false, null);
                 return;
             }
             cookie = cookieMatch[1];
         }
 
+        // Wenn das Anmelden erfolgreich war, mit dem erhaltenen Cookie Infos zum Benutzer-Account abrufen
+        let req = https.request({
+            host: edelmaennerHost,
+            path: edelmaennerAccountPath,
+            headers: {
+                'Cookie': 'xf_session=' + cookie
+            },
+            method: "GET"
+        }, res => {
+            res.setEncoding("utf8");
 
-        result.setEncoding('utf8');
-        result.on('data', XenforoApi.onAuthResponseBody.bind(null, callback, cookie));
+            let responseHTML = ''
+            res.on('data', chunk => {
+                responseHTML += chunk;
+            });
+            res.on('end', () => {
+                XenforoApi.onAuthResponseBody(callback, cookie, responseHTML)
+            });
+        });
+        req.end();
     }
 
     /**
@@ -97,9 +115,10 @@ export default class XenforoApi {
      */
     public static onAuthResponseBody(callback: authRequestCallbackFunction, cookie: string, html: string): void {
 
+        // debug(0, "Got response form server with data:", html)
         const dom = new jsdom.JSDOM(html);
         let accountPopup = dom.window.document.getElementsByClassName('accountPopup')[0] as HTMLDivElement;
-        if(!accountPopup) {
+        if (!accountPopup) {
             callback(false, null);
             return;
         }
@@ -119,7 +138,7 @@ export default class XenforoApi {
             host: edelmaennerHost,
             path: edelmaennerAccountPath,
             headers: {
-                'Cookie': 'xf_session='+sessionId
+                'Cookie': 'xf_session=' + sessionId
             },
             method: "GET"
         }, XenforoApi.onAuthResponse.bind(null, callback, sessionId));

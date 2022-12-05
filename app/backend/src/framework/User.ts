@@ -89,7 +89,7 @@ export default class User {
         }
 
         if(loginData.isAuthSessionId) {
-            let sessionId = username;
+            let sessionId = this.authSessionId ?? password;
             debug(1, `user ${this.id} attempted login with authId`);
             XenforoApi.sendTokenAuthRequest(sessionId, this.onAuthResponse.bind(this))
         }
