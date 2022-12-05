@@ -14,7 +14,7 @@ export default class ExampleChatGame implements ModuleGameInterface {
         this.roomApi.addEventHandler('userMessageSend', this.onUserMessageReceived.bind(this));
     }
 
-    onUserMessageReceived(eventData: any) {
+    onUserMessageReceived(eventData: {[key: string]: any}) {
         debug(0,`User ID ${eventData.senderId} send in message: `, eventData.message);
         this.roomApi.sendRoomMessage('serverMessageSend', {
             user: eventData.senderId,
