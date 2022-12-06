@@ -66,7 +66,7 @@ export class ProfileManagerSingleton {
             username: username,
             password: password
         })
-        debug(`Try Login as ${username} with "${password}" (use authSessionId: ${isAuthSession?'true':'false'})`);
+        //debug(`Try Login as ${username} with "${password}" (use authSessionId: ${isAuthSession?'true':'false'})`);
     }
 
 }

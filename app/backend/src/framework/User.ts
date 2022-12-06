@@ -4,6 +4,7 @@ import SocketMessenger from "./util/SocketMessenger";
 import RoomManager from "./RoomManager";
 import debug from "./util/debug";
 import ModuleRegistry from "./modules/ModuleRegistry";
+import XenforoApi, {authDataContainer} from "./util/XenforoApi";
 
 export default class User {
 
@@ -80,34 +81,41 @@ export default class User {
         })
     }
 
-    public authenticate(loginData: {isAuthSessionId: boolean, username: string, password: string}): boolean {
+    public authenticate(loginData: {isAuthSessionId: boolean, username: string, password: string}): void {
         let {username, password} = loginData;
 
         if(this.verified) {
-            // already verified
-            return true;
+            return;
         }
 
-        // todo try login with the xenforo api
-        // case 1: isAuthSessionId => false -> login with credentials
-        // case 2: isAuthSessionId => true  -> login with authSessionId in "password" and retrieve username from result
-        let credentialsValid = true; // for now, let all attempts succeed
-        if(credentialsValid) {
-            this.verified = true;
-            this.name = username || '[the username]'; // todo retrieve from api authentication
-            this.pictureUrl = 'https://edelmaenner.net/data/avatars/m/0/324.jpg?1587625532'; // todo retrieve picture url
-            this.authSessionId = Math.random().toString().slice(2); // todo: the session identifier, which can be used to validate login instead of the the credentials
+        if(loginData.isAuthSessionId) {
+            let sessionId = this.authSessionId ?? password;
+            debug(1, `user ${this.id} attempted login with authId`);
+            XenforoApi.sendTokenAuthRequest(sessionId, this.onAuthResponse.bind(this))
+        }
+        else {
+            debug(1, `user ${this.id} attempted login as ${username} using password`);
+            XenforoApi.sendAuthRequest(username, password, this.onAuthResponse.bind(this));
+        }
+    }
 
-            // update data on client side
-            this.sendUserProfileChangedMessage();
-            this.currentRoom.sendRoomChangedBroadcast();
-
-            debug(1, `user ${this.id} authenticated as ${this.name}`);
-            return true;
+    public onAuthResponse(success: boolean, data: null|authDataContainer) {
+        if(!success || !data) {
+            // error -> todo: notify the user that he is dumb
+            debug(1, `authentication attempt failed for user ${this.id}`);
+            return;
         }
 
-        debug(1, `user ${this.id} failed authenticating`);
-        return false;
+        this.verified = true;
+        this.name = data.username;
+        this.pictureUrl = data.profileImageUrl;
+        this.authSessionId = data.authCookie;
+
+        // update data on client side
+        this.sendUserProfileChangedMessage();
+        this.currentRoom.sendRoomChangedBroadcast();
+
+        debug(1, `user ${this.id} authenticated as ${this.name}`);
     }
 
     public refreshLobbyRoomData() {

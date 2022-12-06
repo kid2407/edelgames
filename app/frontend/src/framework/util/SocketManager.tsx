@@ -13,8 +13,11 @@ export class SocketManagerSingleton {
     private readonly socket: Socket;
 
     constructor() {
-        const PORT = process.env.API_HTTP_PORT || 5000;
-        const DOMAIN = process.env.DOMAIN || "http://localhost";
+        const PORT = process.env.REACT_APP_API_HTTP_PORT || 5000;
+        const DOMAIN = process.env.REACT_APP_DOMAIN || "http://localhost";
+        console.log("Domain: ", DOMAIN)
+        console.log("Port: ", PORT)
+        console.log("This is a test!", process.env)
 
         this.socket = io(DOMAIN+":"+PORT);
         this.socket.on("connect", this.onConnectionStatusChanged.bind(this, true));
