@@ -6,12 +6,12 @@ services:
     image: "node:16"
     working_dir: "/var/www/app/frontend"
     volumes:
-      - "./app/frontend2:/var/www/app/frontend"
+      - "./app/frontend:/var/www/app/frontend"
     ports:
       - "${REACT_HTTP_PORT}:${REACT_HTTP_PORT}"
     expose:
       - "${REACT_HTTP_PORT}"
-    command: "npm run start"
+    command: "npm run dev"
     env_file:
       - ./.env
 
