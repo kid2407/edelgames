@@ -6,23 +6,27 @@ $animationTime: 3s;
   bottom: 1.5rem;
   display: flex;
   flex-direction: column;
+  z-index: 500;
 
   .bubble-notification {
     padding: 0.5rem 1rem;
     border-radius: 4px;
     animation: linear Bubble-Notification $animationTime forwards;
-    transition:  opacity $animationTime/10;
+    transition: opacity $animationTime/10;
 
     &.bubble- {
       &error {
         background-color: $error;
       }
+
       &info {
         background-color: $info;
       }
+
       &warning {
         background-color: $warning;
       }
+
       &success {
         background-color: $success;
       }
