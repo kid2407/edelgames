@@ -124,7 +124,7 @@ export default class XenforoApi {
         }
 
         let avatarUrl = (accountPopup.querySelector('.avatar img') as HTMLImageElement).src;
-        let username = (accountPopup.querySelector('.accountUsername') as HTMLDivElement).innerText;
+        let username = (accountPopup.querySelector('.accountUsername') as HTMLElement).textContent;
 
         if(!username) {
             callback(false, null);
