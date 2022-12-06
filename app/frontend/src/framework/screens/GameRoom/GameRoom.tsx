@@ -12,10 +12,13 @@ export default class GameRoom extends React.Component {
             <div className="member-list-row" key={member.getId()}>
                 <ProfileImage picture={member.getPicture()}
                               username={member.getUsername()}
-                              id={member.getId()} />
-                {member.getUsername()}
-                {(member.getId() === ProfileManager.getId() ? <span>&nbsp;(You)</span> : null)}
-                {(member.isRoomMaster() ? <span className="signature-text">&nbsp;A</span> : null)}
+                              id={member.getId()}/>
+                <div className="memberDataDiv">
+                    <span className="memberName">{member.getUsername()}</span>
+                    {(member.getId() === ProfileManager.getId() ? <span>&nbsp;(You)</span> : null)}
+                    {(member.isRoomMaster() ? <span className="signature-text">&nbsp;A</span> : null)}
+                </div>
+                <br/>
             </div>
         );
     }
@@ -24,7 +27,7 @@ export default class GameRoom extends React.Component {
         let currentGameId = RoomManager.getCurrentGameId();
         let currentGameModule = ModuleRegistry.getModuleById(currentGameId);
 
-        if(!currentGameModule) {
+        if (!currentGameModule) {
             return (
                 <div id="screenGame">
                     404 - Game not found
