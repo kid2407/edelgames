@@ -23,15 +23,15 @@ type internalEventList = {
 export default class ModuleRoomApi {
 
     private readonly game: ModuleGameInterface;
-    private readonly room: Room;
+    private readonly _room: Room;
     private readonly gameId: string;
     private eventListeners: internalEventList = {};
 
     constructor(gameId: string, game: ModuleGameInterface, room: Room) {
         this.game = game;
         this.gameId = gameId;
-        this.room = room;
-        this.room.setCurrentGame(this);
+        this._room = room;
+        this._room.setCurrentGame(this);
         game.onGameInitialize(this);
     }
 
@@ -79,7 +79,7 @@ export default class ModuleRoomApi {
 
     public sendRoomMessage(eventName: string, eventData: ({[key: string]: any})): void {
         let event = this.getGameId()+'_'+eventName;
-        SocketMessenger.broadcast(this.room.getRoomId(), 'ServerToClientGameMessage', {
+        SocketMessenger.broadcast(this._room.getRoomId(), 'ServerToClientGameMessage', {
             messageTypeId: event,
             ...eventData
         });
@@ -87,7 +87,7 @@ export default class ModuleRoomApi {
 
     public sendPlayerMessage(playerId: string, eventName: string, eventData: ({[key: string]: any})): void {
         let event = this.getGameId()+'_'+eventName;
-        let user = this.room.getRoomMembers().find(user => user.getId() === playerId);
+        let user = this._room.getRoomMembers().find(user => user.getId() === playerId);
         SocketMessenger.directMessageToSocket(user.getSocket(), 'ServerToClientGameMessage', {
             messageTypeId: event,
             ...eventData
@@ -96,7 +96,11 @@ export default class ModuleRoomApi {
 
     // this will cancel / stop / end the current game instance and return the members back to the game select (idle) room
     public cancelGame() {
-        this.room.setCurrentGame(null);
+        this._room.setCurrentGame(null);
     }
 
+
+    get room(): Room {
+        return this._room;
+    }
 }
