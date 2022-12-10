@@ -1,0 +1,28 @@
+#gameConfig {
+    margin-top: 20px;
+    display: table;
+    border-collapse: separate;
+    border-spacing: 0 1em;
+    width: 100%;
+
+    div.configRow {
+        width: 100%;
+        margin: 10px;
+        display: table-row;
+
+        label {
+            vertical-align: top;
+            width: 1%;
+        }
+
+        *[readonly=""] {
+            background-color: #999999;
+            color: #00000055;
+        }
+
+        label, input, textarea {
+            display: table-cell;
+            padding: 5px;
+        }
+    }
+}
