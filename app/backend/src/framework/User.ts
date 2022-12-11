@@ -101,8 +101,11 @@ export default class User {
 
     public onAuthResponse(success: boolean, data: null|authDataContainer) {
         if(!success || !data) {
-            // error -> todo: notify the user that he is dumb
             debug(1, `authentication attempt failed for user ${this.id}`);
+            SocketMessenger.directMessageToSocket(this.socket, 'showNotificationBubble', {
+                type: 'error',
+                message: 'Authentication failed!'
+            });
             return;
         }
 

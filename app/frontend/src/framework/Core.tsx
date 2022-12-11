@@ -8,6 +8,7 @@ import ProfileManager, {ProfileManagerSingleton} from "./util/ProfileManager";
 import RoomManager, {RoomEventNames} from "./util/RoomManager";
 import IdleRoom from "./screens/IdleRoom/IdleRoom";
 import GameRoom from "./screens/GameRoom/GameRoom";
+import NotificationBubble from "./components/NotificationBubble/NotificationBubble";
 
 
 export default class Core extends AbstractComponent {
@@ -56,6 +57,8 @@ export default class Core extends AbstractComponent {
                 <div id="pageContent">
                     {this.renderRoomScreen()}
                 </div>
+
+                <NotificationBubble />
             </div>
         );
     }
