@@ -9,8 +9,11 @@ type gameConfig = {
 }
 
 type guess = {
-    user: User,
-    guesses: object
+    user: string,
+    data: {
+        letter: string,
+        guesses: string[]
+    }[]
 }
 
 type gameState = {
@@ -19,12 +22,15 @@ type gameState = {
     config: gameConfig,
     round: number | null,
     guesses: guess[],
-    gamePhase: string
+    gamePhase: string,
+    letter: string
 }
 
 export default class StadtLandFlussGame implements ModuleGameInterface {
     roomApi: ModuleRoomApi | null = null;
     gameState: gameState | null = null
+
+    private usedLetters: string[] = []
 
     private readonly gamePhases = {
         SETUP: 'setup',
@@ -43,7 +49,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         guesses: [],
         players: {},
         round: 0,
-        gamePhase: this.gamePhases.SETUP
+        gamePhase: this.gamePhases.SETUP,
+        letter: ""
     }
 
     log(logLevel: number = 0, ...args: any[]) {
@@ -72,15 +79,16 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.roomApi.cancelGame()
     }
 
-    private publishGameState(user:string|null = null) {
+    private publishGameState(user: string | null = null) {
         let state = this.gameState
         let toPublish = {
             active: state.active,
             players: Object.keys(state.players),
             config: state.config,
             round: state.round,
-            guesses: state.guesses.map(g => ({guesses: g.guesses, user: g.user.getId()})),
-            gamePhase: state.gamePhase
+            guesses: state.guesses,
+            gamePhase: state.gamePhase,
+            letter: state.letter
         }
 
         this.log(0, "sending new game state:", toPublish)
@@ -91,7 +99,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         }
     }
 
-    sendGameState(eventData: {senderId:string,messageTypeId:string}) {
+    sendGameState(eventData: { senderId: string, messageTypeId: string }) {
         this.publishGameState(eventData.senderId)
     }
 
@@ -117,17 +125,40 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     }
 
     onUpdateSettings(eventData: { rounds: number, categories: string[] }) {
+        if (eventData.rounds > 26) {
+            eventData.rounds = 26
+        }
         this.gameState.config = eventData
         this.publishGameState()
     }
 
     onStartGame() {
+        this.gameState.active = true
+        this.gameState.gamePhase = this.gamePhases.GUESSING
+        this.gameState.round = 1
+        this.gameState.letter = this.getRandomLetter()
+
+        this.publishGameState()
     }
 
     onBeginRound() {
     }
 
     onUpdateGuesses(eventData: object) {
+    }
+
+    getRandomLetter(tries: number = 0): string {
+        let letter = String.fromCharCode(Math.floor(Math.random() * 26) + 65)
+        if (letter in this.usedLetters) {
+            if (tries >= 26) {
+                console.error("No free letters available!")
+                return
+            }
+            return this.getRandomLetter(tries + 1)
+        }
+        this.usedLetters.push(letter)
+
+        return letter
     }
 
 }

@@ -5,24 +5,48 @@
     border-spacing: 0 1em;
     width: 100%;
 
-    div.configRow {
-        width: 100%;
-        margin: 10px;
-        display: table-row;
+    div.settingsWrapper {
+        div.configRow {
+            width: 100%;
+            margin: 10px;
+            display: table-row;
 
-        label {
-            vertical-align: top;
-            width: 1%;
+            label {
+                vertical-align: top;
+                width: 1%;
+            }
+
+            *[readonly=""] {
+                background-color: #999999;
+                color: #00000055;
+            }
+
+            label, input, textarea {
+                display: table-cell;
+                padding: 5px;
+            }
         }
+    }
 
-        *[readonly=""] {
-            background-color: #999999;
-            color: #00000055;
+    div.configButtons {
+        button + button {
+            margin-left: 20px;
         }
+    }
+}
 
-        label, input, textarea {
-            display: table-cell;
-            padding: 5px;
+#slfGuessing {
+    margin-top: 20px;
+
+    table, th, td {
+        border: 1px solid white;
+        border-collapse: collapse;
+        padding: 5px;
+    }
+
+    table {
+        th {
+            text-align: left;
         }
     }
 }

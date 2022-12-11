@@ -2,11 +2,9 @@ import React, {Component} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import stadtLandFluss from "./StadtLandFluss";
 import ModuleGameApi from "../../framework/modules/ModuleGameApi";
-import User from "../../framework/util/User";
 import roomManager from "../../framework/util/RoomManager";
 import profileManager from "../../framework/util/ProfileManager";
 import SLFConfig from "./components/SLFConfig";
-import SLFLetter from "./components/SLFLetter";
 import SLFGuessing from "./components/SLFGuessing";
 import SLFRoundResults from "./components/SLFRoundResults";
 import SLFEndResults from "./components/SLFEndResults";
@@ -17,8 +15,11 @@ type gameConfig = {
 }
 
 type guess = {
-    user: User,
-    guesses: object
+    user: string,
+    data: {
+        letter: string,
+        guesses: string[]
+    }[]
 }
 
 type gameState = {
@@ -27,7 +28,8 @@ type gameState = {
     config: gameConfig,
     round: number | null,
     guesses: guess[],
-    gamePhase: string
+    gamePhase: string,
+    letter: string
 }
 
 export default class StadtLandFlussGame extends Component<{}, gameState> implements ModuleGameInterface {
@@ -45,7 +47,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         guesses: [],
         players: {},
         round: 0,
-        gamePhase: 'setup'
+        gamePhase: 'setup',
+        letter: ""
     }
 
     constructor(props: any) {
@@ -57,7 +60,7 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
     componentDidMount() {
         if (!this.hasBeenMounted) {
             this.gameApi.addEventHandler('updateGameState', this.onGameStateUpdate.bind(this));
-            this.gameApi.sendMessageToServer("requestGameState",{})
+            this.gameApi.sendMessageToServer("requestGameState", {})
             this.hasBeenMounted = true
         }
     }
@@ -69,7 +72,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             guesses: eventData.guesses,
             players: eventData.players,
             round: eventData.round,
-            gamePhase: eventData.gamePhase
+            gamePhase: eventData.gamePhase,
+            letter:eventData.letter
         })
     }
 
@@ -87,10 +91,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         switch (this.state.gamePhase) {
             case "setup":
                 return <SLFConfig gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} config={this.state.config}/>
-            case "letter":
-                return <SLFLetter/>
             case "guessing":
-                return <SLFGuessing/>
+                return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter}/>
             case "round_results":
                 return <SLFRoundResults/>
             case "end_screen":
@@ -99,13 +101,12 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
     }
 
     renderBackToGameSelectionButton() {
-        return this.isRoomMaster() ? <button onClick={this.returnToGameSelection.bind(this)}>Zur Spieleauswahl</button> : ""
+        return this.isRoomMaster() ? <button onClick={this.returnToGameSelection.bind(this)}>Zur Spielauswahl</button> : ""
     }
 
     render() {
         return (
             <div id={"stadtLandFluss"}>
-                <p>Hier wird Stadt Land Fluss entstehen!</p>
                 {this.renderBackToGameSelectionButton()}
                 {this.getCurrentlyActiveSection()}
             </div>
