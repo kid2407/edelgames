@@ -1,14 +1,12 @@
-import {EventNameListObj} from "./EventManager";
-import EventManager from "./EventManager";
+import EventManager, {EventDataObject} from "./EventManager";
 import Cookies from "universal-cookie";
-import SocketManager from "./SocketManager";
-import debug from "./debug";
+import socketManager from "./SocketManager";
 
 /**
  * Stores and manages all data concerning the users own profile
  */
 
-export const ProfileEventNames: EventNameListObj = {
+export const ProfileEventNames = {
     profileChangedEventNotified: "profileChangedEventNotified",
     profileUpdated: "profileUpdated"
 }
@@ -16,33 +14,37 @@ export const ProfileEventNames: EventNameListObj = {
 type ServerProfileObject = {
     id: string;
     username: string;
-    pictureUrl: string|null;
+    pictureUrl: string | null;
     verified: boolean;
-    authSessionId: string|null;
+    authSessionId: string | null;
 }
 
-export class ProfileManagerSingleton {
+class ProfileManager {
 
     private id: string = "0";
     private username: string = 'loading';
     private verified: boolean = false;
-    private picture: string|null = null;
-    private authSessionId: string|null = null;
+    private picture: string | null = null;
+    private authSessionId: string | null = null;
 
     constructor() {
         EventManager.subscribe(ProfileEventNames.profileChangedEventNotified, this.onProfileChangedEventNotified.bind(this))
     }
 
-    onProfileChangedEventNotified(data: ServerProfileObject): void {
+    onProfileChangedEventNotified(data: EventDataObject): void {
+        data = data as ServerProfileObject; // just for correct typechecking
+
         // try automatic login, if the user has no session set
         const cookies = new Cookies();
         let authSessionCookie = cookies.get('authSession');
-        if(this.authSessionId === null && data.authSessionId === null && authSessionCookie) {
-            ProfileManagerSingleton.attemptAuthentication(true, '', authSessionCookie);
+        if (this.authSessionId === null && data.authSessionId === null && authSessionCookie) {
+            // if we are not logged in, but have an authSessionCookie, we attempt a login with it
+            this.attemptAuthentication(true, '', authSessionCookie);
         }
 
-        if(this.authSessionId !== data.authSessionId) {
-            cookies.set('authSession', data.authSessionId, { path: '/' });
+        if (this.authSessionId !== data.authSessionId) {
+            // if we have received an authSessionId after successful login, we store it as a cookie
+            cookies.set('authSession', data.authSessionId, {path: '/'});
         }
 
         this.id = data.id;
@@ -54,22 +56,33 @@ export class ProfileManagerSingleton {
         EventManager.publish(ProfileEventNames.profileUpdated);
     }
 
-    public getUsername():    string      {return this.username; }
-    public getId():          string      {return this.id;       }
-    public getPicture():     string|null {return this.picture;  }
-    public isVerified():     boolean     {return this.verified; }
+    public getUsername(): string {
+        return this.username;
+    }
+
+    public getId(): string {
+        return this.id;
+    }
+
+    public getPicture(): string | null {
+        return this.picture;
+    }
+
+    public isVerified(): boolean {
+        return this.verified;
+    }
 
 
-    public static attemptAuthentication(isAuthSession: boolean, username: string, password: string) {
-        SocketManager.sendEvent('userLoginAttempt', {
+    public attemptAuthentication(isAuthSession: boolean, username: string, password: string): void {
+        socketManager.sendEvent('userLoginAttempt', {
             isAuthSessionId: isAuthSession,
             username: username,
             password: password
         })
-        //debug(`Try Login as ${username} with "${password}" (use authSessionId: ${isAuthSession?'true':'false'})`);
     }
 
 }
 
-const ProfileManager = new ProfileManagerSingleton();
-export default ProfileManager;
+const profileManager = new ProfileManager();
+export default profileManager;
+export type ProfileManagerType = typeof profileManager;

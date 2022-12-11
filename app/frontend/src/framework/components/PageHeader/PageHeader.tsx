@@ -1,51 +1,48 @@
-import {ProfileEventNames} from "../../util/ProfileManager";
-import AbstractComponent from "../AbstractComponent";
+import profileManager, {ProfileEventNames} from "../../util/ProfileManager";
 import ProfileImage from "../ProfileImage/ProfileImage";
-import EventManager from "../../util/EventManager";
-import ProfileManager from "../../util/ProfileManager";
-import RoomManager from "../../util/RoomManager";
 import LoginWindow from "../LoginWindow/LoginWindow";
-import SocketManager from "../../util/SocketManager";
+import eventManager from "../../util/EventManager";
+import socketManager from "../../util/SocketManager";
+import roomManager, {RoomEventNames} from "../../util/RoomManager";
+import React, {ReactNode} from "react";
 
-type PageHeaderState = {
+type IState = {
     showLoginWindow: boolean
 }
 
-export default class PageHeader extends AbstractComponent {
+export default class PageHeader extends React.Component<{}, IState> {
 
-    state: PageHeaderState = {
+    state = {
         showLoginWindow: false
     };
 
     constructor(props: object) {
         super(props);
 
-        EventManager.subscribe(ProfileEventNames.profileUpdated, this.onProfileDataChanged.bind(this));
+        eventManager.subscribe(ProfileEventNames.profileUpdated, this.onProfileDataChanged.bind(this));
     }
 
-    onProfileDataChanged() {
-        this.triggerRerender();
+    onProfileDataChanged(): void {
+        this.setState({});
     }
 
-    onOpenLoginWindow() {
+    onOpenLoginWindow(): void {
         this.setState({
             showLoginWindow: true
         });
-        console.log('showing login window');
     }
 
-    onCloseLoginWindow() {
+    onCloseLoginWindow(): void {
         this.setState({
             showLoginWindow: false
         });
-        console.log('hiding login window');
     }
 
-    leaveRoom() {
-        SocketManager.sendEvent('returnToLobby', {});
+    leaveRoom(): void {
+        socketManager.sendEvent(RoomEventNames.returnToLobby, {});
     }
 
-    render() {
+    render(): ReactNode {
         return (
             <div id="pageHeader">
 
@@ -54,21 +51,21 @@ export default class PageHeader extends AbstractComponent {
                     <span id="userProfileInfoShort"
                           onClick={this.onOpenLoginWindow.bind(this)}>
 
-                        <ProfileImage picture={ProfileManager.getPicture()}
-                                      username={ProfileManager.getUsername()}
-                                      id={ProfileManager.getId()}
+                        <ProfileImage picture={profileManager.getPicture()}
+                                      username={profileManager.getUsername()}
+                                      id={profileManager.getId()}
                         />
 
-                        <div className="profile-name">{ProfileManager.getUsername()}</div>
+                        <div className="profile-name">{profileManager.getUsername()}</div>
                     </span>
 
                 </div>
 
                 <div className="text-align-center">
-                    Room: {RoomManager.getRoomName()}
+                    Room: {roomManager.getRoomName()}
                     {
-                        (RoomManager.getRoomId() === 'lobby') ? null :
-                        <button className="secondary" onClick={this.leaveRoom.bind(this)}>Raum verlassen</button>
+                        (roomManager.getRoomId() === 'lobby') ? null :
+                            <button className="secondary" onClick={this.leaveRoom.bind(this)}>Raum verlassen</button>
                     }
                 </div>
 
@@ -77,9 +74,9 @@ export default class PageHeader extends AbstractComponent {
                 </div>
 
                 {
-                    ProfileManager.isVerified() ? null :
+                    profileManager.isVerified() ? null :
                         <LoginWindow show={this.state.showLoginWindow}
-                                     closeFunction={this.onCloseLoginWindow.bind(this)} />
+                                     closeFunction={this.onCloseLoginWindow.bind(this)}/>
                 }
             </div>
         );

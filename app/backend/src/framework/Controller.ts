@@ -1,7 +1,6 @@
-import SocketMessenger from "./util/SocketMessenger";
 import {Server, Socket} from "socket.io";
 import User from "./User";
-import RoomManager from "./RoomManager";
+import roomManager from "./RoomManager";
 import debug from "./util/debug";
 
 export default class Controller {
@@ -10,6 +9,9 @@ export default class Controller {
     public static connectedUsers: number = 0;
 
     constructor(io: Server) {
+        if (Controller.io) {
+            throw "Cannot create multiple socket controllers!";
+        }
         Controller.io = io;
     }
 
@@ -24,7 +26,7 @@ export default class Controller {
 
 
         // switch user into lobby
-        RoomManager.getLobbyRoom().joinRoom(user);
+        roomManager.getLobbyRoom().joinRoom(user);
     }
 
     onDisconnect(socket: Socket, user: User): void {
@@ -32,5 +34,4 @@ export default class Controller {
         debug(2, `user ${user.getId()} (socket ${socket.id}) disconnected! (${Controller.connectedUsers} users remaining)`);
         user.destroyUser();
     }
-
 }
