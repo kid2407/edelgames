@@ -8,20 +8,18 @@ type gameConfig = {
     rounds: number
 }
 
-type guess = {
-    user: string,
-    data: {
-        letter: string,
-        guesses: string[]
-    }[]
+type guesses = {
+    [userId: string]: {
+        [letter: string]: string[]
+    }
 }
 
 type gameState = {
     active: boolean,
     players: object | any,
     config: gameConfig,
-    round: number | null,
-    guesses: guess[],
+    round: number,
+    guesses: guesses,
     gamePhase: string,
     letter: string
 }
@@ -46,7 +44,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             categories: ["Stadt", "Land", "Fluss"],
             rounds: 10
         },
-        guesses: [],
+        guesses: {},
         players: {},
         round: 0,
         gamePhase: this.gamePhases.SETUP,
@@ -59,12 +57,12 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
 
     onGameInitialize(roomApi: ModuleRoomApi): void {
         this.roomApi = roomApi;
-        this.roomApi.addEventHandler("returnToGameSelection", this.returnToGameSelection.bind(this))
+        this.roomApi.addEventHandler("returnToGameSelection", this.onReturnToGameSelection.bind(this))
         this.roomApi.addEventHandler("updateSettings", this.onUpdateSettings.bind(this))
         this.roomApi.addEventHandler("startGame", this.onStartGame.bind(this))
-        this.roomApi.addEventHandler("beginRound", this.onStartGame.bind(this))
+        this.roomApi.addEventHandler("beginRound", this.onNextRound.bind(this))
         this.roomApi.addEventHandler("updateGuesses", this.onUpdateGuesses.bind(this))
-        this.roomApi.addEventHandler("requestGameState", this.sendGameState.bind(this))
+        this.roomApi.addEventHandler("requestGameState", this.onRequestGameState.bind(this))
 
         this.roomApi.addUserJoinedHandler(this.onUserJoin.bind(this))
         this.roomApi.addUserLeaveHandler(this.onUserLeave.bind(this))
@@ -75,7 +73,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     }
 
 
-    returnToGameSelection() {
+    onReturnToGameSelection() {
         this.roomApi.cancelGame()
     }
 
@@ -99,7 +97,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         }
     }
 
-    sendGameState(eventData: { senderId: string, messageTypeId: string }) {
+    onRequestGameState(eventData: { senderId: string, messageTypeId: string }) {
         this.publishGameState(eventData.senderId)
     }
 
@@ -135,16 +133,22 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     onStartGame() {
         this.gameState.active = true
         this.gameState.gamePhase = this.gamePhases.GUESSING
-        this.gameState.round = 1
-        this.gameState.letter = this.getRandomLetter()
+        this.onNextRound()
+    }
 
+    onNextRound(): void {
+        this.gameState.round += 1
+        this.gameState.letter = this.getRandomLetter()
         this.publishGameState()
     }
 
-    onBeginRound() {
-    }
-
-    onUpdateGuesses(eventData: object) {
+    onUpdateGuesses(eventData: { senderId: string, guesses: string[] }) {
+        console.log(eventData)
+        if (!this.gameState.guesses.hasOwnProperty(eventData.senderId)) {
+            this.gameState.guesses[eventData.senderId] = {}
+        }
+        this.gameState.guesses[eventData.senderId][this.gameState.letter] = eventData.guesses
+        this.publishGameState()
     }
 
     getRandomLetter(tries: number = 0): string {

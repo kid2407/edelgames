@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import ModuleGameApi from "../../../framework/modules/ModuleGameApi";
 
-export default class SLFConfig extends Component<{ isRoomMaster: boolean, gameApi: ModuleGameApi, config: { rounds: string, categories: string[] } }, {}> {
+export default class SLFConfig extends Component<{ isRoomMaster: boolean, gameApi: ModuleGameApi, config: { rounds: number, categories: string[] } }, {}> {
 
     private updateConfig() {
         let settingsDiv = document.getElementById("gameConfig")

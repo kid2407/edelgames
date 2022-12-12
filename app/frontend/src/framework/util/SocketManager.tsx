@@ -39,7 +39,7 @@ export class SocketManagerSingleton {
     }
 
     public sendEvent(eventName: string, data: object): void {
-        debug(`Sending event ${eventName} with `, data);
+        debug(`Sending event ${eventName} with `, data.hasOwnProperty("password") ? 'data' : data);
         this.socket.emit(eventName, data);
     }
 

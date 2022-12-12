@@ -11,23 +11,21 @@ import SLFEndResults from "./components/SLFEndResults";
 
 type gameConfig = {
     categories: string[],
-    rounds: string
+    rounds: number
 }
 
-type guess = {
-    user: string,
-    data: {
-        letter: string,
-        guesses: string[]
-    }[]
+export type Guesses = {
+    [userId: string]: {
+        [letter: string]: string[]
+    }
 }
 
-type gameState = {
+export type gameState = {
     active: boolean,
     players: object,
     config: gameConfig,
     round: number | null,
-    guesses: guess[],
+    guesses: Guesses,
     gamePhase: string,
     letter: string
 }
@@ -42,9 +40,9 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         active: false,
         config: {
             categories: ["Stadt", "Land", "Fluss"],
-            rounds: "10"
+            rounds: 10
         },
-        guesses: [],
+        guesses: {},
         players: {},
         round: 0,
         gamePhase: 'setup',
@@ -92,7 +90,7 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             case "setup":
                 return <SLFConfig gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} config={this.state.config}/>
             case "guessing":
-                return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter}/>
+                return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter} max_rounds={this.state.config.rounds} round={this.state.round}/>
             case "round_results":
                 return <SLFRoundResults/>
             case "end_screen":
