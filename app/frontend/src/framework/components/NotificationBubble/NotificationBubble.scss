@@ -6,6 +6,7 @@ $animationTime: 3s;
   bottom: 1.5rem;
   display: flex;
   flex-direction: column;
+  z-index: 500;
 
   .bubble-notification {
     padding: 0.5rem 1rem;
