@@ -22,7 +22,7 @@ export type Guesses = {
 
 export type gameState = {
     active: boolean,
-    players: object,
+    players: string[],
     config: gameConfig,
     round: number | null,
     guesses: Guesses,
@@ -44,7 +44,7 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             rounds: 10
         },
         guesses: {},
-        players: {},
+        players: [],
         round: 0,
         gamePhase: 'setup',
         letter: "",
@@ -96,7 +96,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
                 return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter}
                                     max_rounds={this.state.config.rounds} round={this.state.round} ready_users={this.state.ready_users} user_count={roomManager.getRoomMembers().length}/>
             case "round_results":
-                return <SLFRoundResults/>
+                return <SLFRoundResults gameApi={this.gameApi} letter={this.state.letter} round={this.state.round} max_rounds={this.state.config.rounds}
+                                        guesses={this.state.guesses} categories={this.state.config.categories} players={this.state.players} isRoomMaster={this.isRoomMaster()}/>
             case "end_screen":
                 return <SLFEndResults/>
         }

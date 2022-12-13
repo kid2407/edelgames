@@ -99,11 +99,6 @@ export default class SLFGuessing extends Component<PropData, {}> {
         }
     }
 
-    private onNextRound() {
-        this.onUpdateGuesses()
-        this.props.gameApi.sendMessageToServer("beginRound", {})
-    }
-
     render() {
         return (<div id={"slfGuessing"}>
             <p>Runde {this.props.round} von {this.props.max_rounds}</p>

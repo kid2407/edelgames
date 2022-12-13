@@ -62,7 +62,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.roomApi.addEventHandler("returnToGameSelection", this.onReturnToGameSelection.bind(this))
         this.roomApi.addEventHandler("updateSettings", this.onUpdateSettings.bind(this))
         this.roomApi.addEventHandler("startGame", this.onStartGame.bind(this))
-        this.roomApi.addEventHandler("beginRound", this.onNextRound.bind(this))
+        this.roomApi.addEventHandler("nextRound", this.onNextRound.bind(this))
         this.roomApi.addEventHandler("updateGuesses", this.onUpdateGuesses.bind(this))
         this.roomApi.addEventHandler("requestGameState", this.onRequestGameState.bind(this))
         this.roomApi.addEventHandler("unready", this.onUnready.bind(this))
