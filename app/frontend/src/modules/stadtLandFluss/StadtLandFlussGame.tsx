@@ -27,7 +27,8 @@ export type gameState = {
     round: number | null,
     guesses: Guesses,
     gamePhase: string,
-    letter: string
+    letter: string,
+    ready_users: number
 }
 
 export default class StadtLandFlussGame extends Component<{}, gameState> implements ModuleGameInterface {
@@ -46,7 +47,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         players: {},
         round: 0,
         gamePhase: 'setup',
-        letter: ""
+        letter: "",
+        ready_users: 0
     }
 
     constructor(props: any) {
@@ -71,7 +73,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             players: eventData.players,
             round: eventData.round,
             gamePhase: eventData.gamePhase,
-            letter:eventData.letter
+            letter: eventData.letter,
+            ready_users: eventData.ready_users
         })
     }
 
@@ -90,7 +93,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             case "setup":
                 return <SLFConfig gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} config={this.state.config}/>
             case "guessing":
-                return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter} max_rounds={this.state.config.rounds} round={this.state.round}/>
+                return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter}
+                                    max_rounds={this.state.config.rounds} round={this.state.round} ready_users={this.state.ready_users} user_count={roomManager.getRoomMembers().length}/>
             case "round_results":
                 return <SLFRoundResults/>
             case "end_screen":

@@ -21,7 +21,8 @@ type gameState = {
     round: number,
     guesses: guesses,
     gamePhase: string,
-    letter: string
+    letter: string,
+    ready_users: string[]
 }
 
 export default class StadtLandFlussGame implements ModuleGameInterface {
@@ -48,7 +49,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         players: {},
         round: 0,
         gamePhase: this.gamePhases.SETUP,
-        letter: ""
+        letter: "",
+        ready_users: []
     }
 
     log(logLevel: number = 0, ...args: any[]) {
@@ -63,6 +65,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.roomApi.addEventHandler("beginRound", this.onNextRound.bind(this))
         this.roomApi.addEventHandler("updateGuesses", this.onUpdateGuesses.bind(this))
         this.roomApi.addEventHandler("requestGameState", this.onRequestGameState.bind(this))
+        this.roomApi.addEventHandler("unready", this.onUnready.bind(this))
 
         this.roomApi.addUserJoinedHandler(this.onUserJoin.bind(this))
         this.roomApi.addUserLeaveHandler(this.onUserLeave.bind(this))
@@ -86,7 +89,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             round: state.round,
             guesses: state.guesses,
             gamePhase: state.gamePhase,
-            letter: state.letter
+            letter: state.letter,
+            ready_users: state.ready_users.length
         }
 
         this.log(0, "sending new game state:", toPublish)
@@ -117,16 +121,17 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.log(0, `User ${user.getId()} left the Stadt Land Fluss room ${user.getCurrentRoom().getRoomId()}.`)
         if (user.getId() in this.gameState.players) {
             delete this.gameState.players[user.getId()]
+            this.gameState.ready_users = this.gameState.ready_users.filter(id => id !== user.getId())
             this.publishGameState()
             this.log(0, `Removed ${user.getId()} (${user.getUsername()}) from the player list since they were in it.`)
         }
     }
 
-    onUpdateSettings(eventData: { rounds: number, categories: string[] }) {
-        if (eventData.rounds > 26) {
-            eventData.rounds = 26
+    onUpdateSettings(newConfig: { rounds: number, categories: string[] }) {
+        if (newConfig.rounds > 26) {
+            newConfig.rounds = 26
         }
-        this.gameState.config = eventData
+        this.gameState.config = newConfig
         this.publishGameState()
     }
 
@@ -143,11 +148,26 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     }
 
     onUpdateGuesses(eventData: { senderId: string, guesses: string[] }) {
-        console.log(eventData)
         if (!this.gameState.guesses.hasOwnProperty(eventData.senderId)) {
             this.gameState.guesses[eventData.senderId] = {}
         }
         this.gameState.guesses[eventData.senderId][this.gameState.letter] = eventData.guesses
+        if (!(eventData.senderId in this.gameState.ready_users)) {
+            this.gameState.ready_users.push(eventData.senderId)
+        }
+
+        // All users finished guessing for the round
+        if (this.gameState.ready_users.length === Object.keys(this.gameState.players).length) {
+            this.gameState.gamePhase = this.gamePhases.ROUND_RESULTS
+            this.gameState.ready_users = []
+            this.log(0, "Switching to round results.")
+        }
+
+        this.publishGameState()
+    }
+
+    onUnready(eventData: { senderId: string }) {
+        this.gameState.ready_users = this.gameState.ready_users.filter(id => id !== eventData.senderId)
         this.publishGameState()
     }
 

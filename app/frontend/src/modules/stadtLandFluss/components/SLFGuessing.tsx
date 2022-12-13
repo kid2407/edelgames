@@ -10,7 +10,9 @@ type PropData = {
     letter: string,
     guesses: Guesses,
     round: number,
-    max_rounds: number
+    max_rounds: number,
+    ready_users: number,
+    user_count: number
 }
 
 export default class SLFGuessing extends Component<PropData, {}> {
@@ -69,16 +71,32 @@ export default class SLFGuessing extends Component<PropData, {}> {
     }
 
     private onUpdateGuesses() {
-        // @ts-ignore
-        let guessInputs = document.getElementById("slfGuessing").getElementsByTagName("input")
-        let guesses = []
-        for (let i = 0; i < guessInputs.length; i++) {
-            // @ts-ignore
-            guesses.push(guessInputs.item(i).value.trim())
-        }
+        let guessInputCollection: HTMLCollectionOf<HTMLInputElement> = document.getElementById("slfGuessing")?.getElementsByTagName("input") as HTMLCollectionOf<HTMLInputElement>
+        let button: HTMLButtonElement = document.getElementById("submitGuesses") as HTMLButtonElement
 
-        console.log(guesses)
-        this.props.gameApi.sendMessageToServer("updateGuesses", {guesses: guesses})
+        if (button.classList.contains("submitted")) {
+            button.classList.remove("submitted")
+            for (let i = 0; i < guessInputCollection.length; i++) {
+                guessInputCollection.item(i)?.classList.remove("blocked")
+            }
+            this.props.gameApi.sendMessageToServer("unready", {})
+
+        } else {
+            button.classList.add("submitted")
+            for (let i = 0; i < guessInputCollection.length; i++) {
+                guessInputCollection.item(i)?.classList.add("blocked")
+            }
+            // @ts-ignore
+            let guessInputs = document.getElementById("slfGuessing").getElementsByTagName("input")
+            let guesses = []
+            for (let i = 0; i < guessInputs.length; i++) {
+                // @ts-ignore
+                guesses.push(guessInputs.item(i).value.trim())
+            }
+
+            console.log(guesses)
+            this.props.gameApi.sendMessageToServer("updateGuesses", {guesses: guesses})
+        }
     }
 
     private onNextRound() {
@@ -89,20 +107,26 @@ export default class SLFGuessing extends Component<PropData, {}> {
     render() {
         return (<div id={"slfGuessing"}>
             <p>Runde {this.props.round} von {this.props.max_rounds}</p>
+            <p>Buchstabe: {this.props.letter}</p>
             <table>
                 <thead>
                 <tr>
-                    {this.generateTableHead()}
+                    <th>Kategorie</th>
+                    <th>Deine Antwort</th>
                 </tr>
                 </thead>
                 <tbody>
-                {this.generateTableBody()}
+                {this.props.categories.map((c: string) =>
+                    <tr>
+                        <td>{c}</td>
+                        {/* @ts-ignore */}
+                        <td><input type={"text"} key={`${profileManager.getId()}_${this.props.letter}_${c}`} defaultValue={this.props.guesses[profileManager.getId()]?.[this.props.letter]?.[c]}/></td>
+                    </tr>)}
+                {/*{this.generateTableBody()}*/}
                 </tbody>
             </table>
             <br/>
-            <button onClick={this.onUpdateGuesses.bind(this)}>Eingaben speichern</button>
-            &nbsp;
-            <button onClick={this.onNextRound.bind(this)}>Nächste Runde</button>
+            <button id={"submitGuesses"} onClick={this.onUpdateGuesses.bind(this)}>Fertig! ({this.props.ready_users} von {this.props.user_count})</button>
         </div>);
     }
 }

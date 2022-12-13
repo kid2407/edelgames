@@ -49,4 +49,12 @@
             text-align: left;
         }
     }
+
+    input.blocked {
+        background-color: #666666;
+    }
+
+    #submitGuesses.submitted {
+        background-color: green;
+    }
 }
