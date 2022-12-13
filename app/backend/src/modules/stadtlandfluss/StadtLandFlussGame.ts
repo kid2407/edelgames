@@ -2,6 +2,7 @@ import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
 import debug from "../../framework/util/debug";
+import roomManager from "../../framework/RoomManager";
 
 type gameConfig = {
     categories: string[],
@@ -70,7 +71,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.roomApi.addUserJoinedHandler(this.onUserJoin.bind(this))
         this.roomApi.addUserLeaveHandler(this.onUserLeave.bind(this))
         this.gameState = this.initialGameState
-        for (let roomMember of this.roomApi.room.getRoomMembers()) {
+        for (let roomMember of this.roomApi.getRoomsMembers()) {
             this.gameState.players[roomMember.getId()] = roomMember
         }
     }

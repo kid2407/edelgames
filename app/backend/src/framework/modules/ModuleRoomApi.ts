@@ -94,4 +94,8 @@ export default class ModuleRoomApi {
         this.room.setCurrentGame(null);
     }
 
+    public getRoomsMembers(){
+        return this.room.getRoomMembers()
+    }
+
 }
