@@ -11,20 +11,21 @@ class ModuleRegistry {
         return ModuleList;
     }
 
-    public getModuleById(id: string): ModuleInterface|null {
+    public getModuleById(id: string): ModuleInterface | null {
         return this.getModuleList().find(module => module.getUniqueId() === id) || null;
     }
 
     public createGame(room: Room, gameId: string) {
         let module = this.getModuleById(gameId);
 
-        if(!module) {
+        if (!module) {
             debug(1, `Failed to start game with id ${gameId} for room ${room.getRoomId()}`);
             return;
         }
 
         let gameInstance = module.getGameInstance();
-        let roomApi = new ModuleRoomApi(gameId, gameInstance, room);
+        // create the module API -> it will be automatically passed to the game instance
+        new ModuleRoomApi(gameId, gameInstance, room);
     }
 
 }

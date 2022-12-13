@@ -1,46 +1,60 @@
 import SocketManagerSingleton from "./SocketManager";
 import debug from "./debug";
 
-export type EventNameListObj = {
-    [key: string]: string
+// the data carried by an event on publish
+export type EventDataObject = {
+    [key: string]: any
+};
+
+// a function, that can be passed as a listener to an event
+export type ListenerFunction = (data: EventDataObject) => void;
+
+// a list of functions for a specified event
+interface ListenerFunctionList {
+    [key: string]: ListenerFunction[]
 }
 
-interface ListenerFunction {
-    [key: string]: Function[]
-}
-
-interface MessageEventObject {
+// a special event object, that is explicitly used for direct "message" event communication
+interface MessageEventObject extends EventDataObject {
     eventName: string,
-    eventData: object
+    eventData: EventDataObject
 }
 
-export class EventManagerSingleton {
+class EventManager {
 
-    private eventListeners: ListenerFunction = {};
+    private eventListeners: ListenerFunctionList = {};
 
     constructor() {
         SocketManagerSingleton.subscribeEvent('message', this.onSocketMessage.bind(this))
     }
 
-    public onSocketMessage(messageData: object): void {
+    public onSocketMessage(messageData: EventDataObject): void {
         let {eventName, eventData} = messageData as MessageEventObject;
         this.publish(eventName + 'EventNotified', eventData);
     }
 
-    public subscribe(event: string, listener: Function) {
-        if(!this.eventListeners[event]) {
+    public subscribe(event: string, listener: ListenerFunction): void {
+        if (!this.eventListeners[event]) {
             this.eventListeners[event] = [];
-
-            debug('registered event subscription: ' + event);
         }
 
         this.eventListeners[event].push(listener);
+        debug('registered event subscription: ' + event);
     }
 
-    public publish(event: string, eventData: object = {}) {
+    public unsubscribe(event: string, listener: ListenerFunction): void {
+        if (!this.eventListeners[event]) {
+            return;
+        }
+
+        this.eventListeners[event] = this.eventListeners[event].filter(el => el !== listener);
+        debug('unregistered event subscription: ' + event);
+    }
+
+    public publish(event: string, eventData: EventDataObject = {}): void {
         debug('publishing event: ' + event, eventData);
-        if(this.eventListeners[event]) {
-            for(let listener of this.eventListeners[event]) {
+        if (this.eventListeners[event]) {
+            for (let listener of this.eventListeners[event]) {
                 listener(eventData);
             }
         }
@@ -48,5 +62,6 @@ export class EventManagerSingleton {
 
 }
 
-const EventManager = new EventManagerSingleton();
-export default EventManager;
+const eventManager = new EventManager();
+export default eventManager;
+export type EventManagerType = typeof eventManager;

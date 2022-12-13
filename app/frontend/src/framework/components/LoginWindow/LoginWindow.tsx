@@ -1,13 +1,13 @@
 import logo_em from '../../../media/images/logo_em.png';
 import React, {MouseEventHandler} from "react";
-import {ProfileManagerSingleton} from "../../util/ProfileManager";
+import profileManager from "../../util/ProfileManager";
 
-type LoginWindowProps = {
+type IProps = {
     show: boolean,
     closeFunction: MouseEventHandler
 }
 
-export default class LoginWindow extends React.Component<LoginWindowProps, {}> {
+export default class LoginWindow extends React.Component<IProps, {}> {
 
     tryLogin() {
         // username: HTMLInputElement
@@ -15,17 +15,17 @@ export default class LoginWindow extends React.Component<LoginWindowProps, {}> {
             username = (loginScreen.querySelector('input[type=text]') as HTMLInputElement)?.value,
             password = (loginScreen.querySelector('input[type=password]') as HTMLInputElement)?.value;
 
-        if(!username || !password) {
+        if (!username || !password) {
             let errorMessage = loginScreen.querySelector('.error-message') as HTMLInputElement;
             errorMessage.innerText = "Benutzername oder Password ungültig!";
             return;
         }
 
-        ProfileManagerSingleton.attemptAuthentication(false, username, password);
+        profileManager.attemptAuthentication(false, username, password);
     }
 
     render() {
-        if(!this.props.show) {
+        if (!this.props.show) {
             return null;
         }
 
@@ -34,14 +34,14 @@ export default class LoginWindow extends React.Component<LoginWindowProps, {}> {
                  onClick={this.props.closeFunction}>
 
                 <div className="frame"
-                     onClick={(event) => event.stopPropagation() }>
+                     onClick={(event) => event.stopPropagation()}>
 
                     <img src={logo_em} alt={"Edelmänner Logo"}/>
 
                     <div className="error-message"></div>
 
-                    <input type="text" placeholder="Benutzername" />
-                    <input type="password" placeholder="Passwort" />
+                    <input type="text" placeholder="Benutzername"/>
+                    <input type="password" placeholder="Passwort"/>
 
                     <div className="text-align-right">
                         <button onClick={this.tryLogin.bind(this)}>Login</button>

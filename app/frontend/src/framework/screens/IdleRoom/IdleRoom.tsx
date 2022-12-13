@@ -7,12 +7,12 @@ export default class IdleRoom extends React.Component {
     render() {
         return (
             <div id="screenIdleRoom">
-                <div>
-                    <RoomOverviewBox />
+                <div className={"idle-room-overview"}>
+                    <RoomOverviewBox/>
                 </div>
 
-                <div>
-                    <GameSelection />
+                <div className={"idle-game-selection"}>
+                    <GameSelection/>
                 </div>
 
             </div>

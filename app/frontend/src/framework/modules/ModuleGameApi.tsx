@@ -5,12 +5,12 @@ import EventManager from "../util/EventManager";
 import RoomManager from "../util/RoomManager";
 import User from "../util/User";
 
-type internalEventDataObject = {
-        [key: string]: any
+type EventDataObject = {
+    [key: string]: any
 }
-type internalEventHandlerFunction = (eventData: internalEventDataObject) => void;
-type internalEventList = {
-    [key: string]: internalEventHandlerFunction[]
+type EventHandlerFunction = (eventData: EventDataObject) => void;
+type EventHandlerFunctionList = {
+    [key: string]: EventHandlerFunction[]
 }
 
 /*
@@ -21,7 +21,7 @@ export default class ModuleGameApi {
 
     private readonly game: ModuleInterface;
     private readonly gameInstance: ModuleGameInterface;
-    private eventListeners: internalEventList = {};
+    private eventListeners: EventHandlerFunctionList = {};
 
     constructor(game: ModuleInterface, gameInstance: ModuleGameInterface) {
         this.game = game;
@@ -32,7 +32,7 @@ export default class ModuleGameApi {
     /**
      * @internal
      */
-    public onServerToClientMessageEventNotified(eventData: internalEventDataObject) {
+    public onServerToClientMessageEventNotified(eventData: EventDataObject) {
         this.alertEvent(eventData.messageTypeId, eventData, true)
     }
 
@@ -40,31 +40,34 @@ export default class ModuleGameApi {
      * This method will be called automatically, every time an event is triggered.
      * It can also be used to manage internal events for the current game
      */
-    public alertEvent(eventName: string, eventData: internalEventDataObject = {}, skipPrefix: boolean = false) {
-        let event = skipPrefix ? eventName : this.game.getUniqueId()+'_'+eventName;
-        if(this.eventListeners[event]) {
-            for(let listener of this.eventListeners[event]) {
+    public alertEvent(eventName: string, eventData: EventDataObject = {}, skipPrefix: boolean = false): number {
+        let event = skipPrefix ? eventName : this.game.getUniqueId() + '_' + eventName;
+        let alertedListenerCount = 0;
+        if (this.eventListeners[event]) {
+            for (let listener of this.eventListeners[event]) {
                 listener(eventData);
+                alertedListenerCount++;
             }
         }
+        return alertedListenerCount;
     }
 
-    public addEventHandler(eventName: string, handler: internalEventHandlerFunction) {
-        let event = this.game.getUniqueId()+'_'+eventName;
-        if(!this.eventListeners[event]) {
+    public addEventHandler(eventName: string, handler: EventHandlerFunction): void {
+        let event = this.game.getUniqueId() + '_' + eventName;
+        if (!this.eventListeners[event]) {
             this.eventListeners[event] = [];
         }
         this.eventListeners[event].push(handler);
     }
 
-    public sendMessageToServer(messageTypeId: string, eventData: ({[key: string]: any})): void {
+    public sendMessageToServer(messageTypeId: string, eventData: ({ [key: string]: any })): void {
         SocketManager.sendEvent('clientToServerGameMessage', {
-            messageTypeId: this.game.getUniqueId()+'_'+messageTypeId,
+            messageTypeId: this.game.getUniqueId() + '_' + messageTypeId,
             ...eventData
         });
     }
 
-    public getUserDataById(playerId: string): User|undefined {
+    public getUserDataById(playerId: string): User | undefined {
         return RoomManager.getRoomMembers().find(member => member.getId() === playerId);
     }
 }

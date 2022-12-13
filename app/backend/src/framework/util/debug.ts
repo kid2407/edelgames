@@ -1,6 +1,6 @@
 const debugMode = true;
 
-const logLevelThreshold: 0|1|2|3 = 0;
+const logLevelThreshold: 0 | 1 | 2 | 3 = 0;
 
 const logLevelShort = [
     'ALL',          // 0 -> every debug output
@@ -11,5 +11,5 @@ const logLevelShort = [
 
 
 export default function debug(logLevel: number = 0, ...args: any[]) {
-    if(debugMode && logLevel >= logLevelThreshold) console.log(`[${logLevelShort[logLevel]}]`, ...args);
+    if (debugMode && logLevel >= logLevelThreshold) console.log(`[${logLevelShort[logLevel]}]`, ...args);
 }

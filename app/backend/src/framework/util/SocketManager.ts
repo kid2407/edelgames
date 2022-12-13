@@ -1,11 +1,11 @@
 import Controller from "../Controller";
 import {Socket} from "socket.io";
 
-type ListenerFunction = (data: object) => void;
+export type ListenerFunction = (data?: object) => void;
 
 
 // https://socket.io/docs/v3/emit-cheatsheet/
-export default class SocketMessenger {
+export default class SocketManager {
 
     // send a message to all sockets! use wisely
     public static globalBroadcast(eventName: string, eventData: object) {
@@ -25,7 +25,7 @@ export default class SocketMessenger {
 
     // send a message to a specific socket via the given channel
     public static directMessage(socketId: string, eventName: string, eventData: object): void {
-        Controller.io.to(socketId).emit('message',{
+        Controller.io.to(socketId).emit('message', {
             eventName: eventName,
             eventData: eventData
         });
@@ -36,6 +36,13 @@ export default class SocketMessenger {
         socket.emit('message', {
             eventName: eventName,
             eventData: eventData
+        });
+    }
+
+    public static sendNotificationBubbleToSocket(socket: Socket, message: string, type: 'info' | 'error' | 'success' | 'warning' = 'info'): void {
+        SocketManager.directMessageToSocket(socket, 'showNotificationBubble', {
+            type: type,
+            message: message
         });
     }
 
