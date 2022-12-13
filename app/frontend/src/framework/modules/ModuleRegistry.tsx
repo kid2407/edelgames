@@ -8,8 +8,8 @@ class ModuleRegistry {
         return ModuleList;
     }
 
-    public getModuleById(id: string): ModuleInterface|null {
-        return this.getModuleList().find(module => module.getUniqueId() === id) || null;
+    public getModuleById(id: string): ModuleInterface | undefined {
+        return this.getModuleList().find(module => module.getUniqueId() === id);
     }
 
 }

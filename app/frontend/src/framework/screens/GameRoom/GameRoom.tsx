@@ -8,7 +8,7 @@ export default class GameRoom extends React.Component {
         let currentGameId = RoomManager.getCurrentGameId();
         let currentGameModule = ModuleRegistry.getModuleById(currentGameId);
 
-        if(!currentGameModule) {
+        if (!currentGameModule) {
             return (
                 <div id="screenGame">
                     404 - Game not found

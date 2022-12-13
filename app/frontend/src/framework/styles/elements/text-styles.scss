@@ -3,9 +3,20 @@
 }
 
 .text-align- {
-  &left {     text-align: left;     justify-content: flex-start; }
-  &center {   text-align: center;   justify-content: center; }
-  &right {    text-align: right;    justify-content: flex-end; }
+  &left {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  &center {
+    text-align: center;
+    justify-content: center;
+  }
+
+  &right {
+    text-align: right;
+    justify-content: flex-end;
+  }
 }
 
 .primary-text {

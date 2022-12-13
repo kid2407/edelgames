@@ -1,13 +1,13 @@
-import React from "react";
+import React, {ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleGameApi from "../../framework/modules/ModuleGameApi";
 import exampleChat from "./ExampleChat";
 import User from "../../framework/util/User";
-import ProfileManager from "../../framework/util/ProfileManager";
+import profileManager from "../../framework/util/ProfileManager";
 
 type messageObject = {
-    receivedAt: Date|null;
-    senderId: string|null;
+    receivedAt: Date | null;
+    senderId: string | null;
     text: string;
 }
 
@@ -15,10 +15,10 @@ interface IState {
     chatHistory?: messageObject[];
 }
 
-export default class ExampleChatGame extends React.Component<{},IState> implements ModuleGameInterface {
+export default class ExampleChatGame extends React.Component<{}, IState> implements ModuleGameInterface {
 
     private readonly gameApi: ModuleGameApi;
-    private inputElement: HTMLInputElement|null = null;
+    private inputElement: HTMLInputElement | null = null;
     private systemUser: User = new User('00000000', 'system', null, false);
 
     // state is an inherited property from React.Component
@@ -32,12 +32,12 @@ export default class ExampleChatGame extends React.Component<{},IState> implemen
     }
 
     // this method is called, once the component is ready and setState can be used
-    componentDidMount() {
+    componentDidMount(): void {
         this.gameApi.addEventHandler('serverMessageSend', this.onReceiveMessage.bind(this));
     }
 
-    onSendMessage() {
-        if(!this.inputElement || this.inputElement.value === '') return;
+    onSendMessage(): void {
+        if (!this.inputElement || this.inputElement.value === '') return;
 
         // messages send by the gameApi are automatically assigned to this module and will not be interpreted by any other game
         this.gameApi.sendMessageToServer('userMessageSend', {
@@ -46,7 +46,7 @@ export default class ExampleChatGame extends React.Component<{},IState> implemen
         this.inputElement.value = "";
     }
 
-    onReceiveMessage(eventData: {[key: string]: any}) {
+    onReceiveMessage(eventData: { [key: string]: any }): void {
         let newMessage: messageObject = {
             receivedAt: new Date(),
             senderId: eventData.user,
@@ -61,20 +61,20 @@ export default class ExampleChatGame extends React.Component<{},IState> implemen
         });
     }
 
-    onInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-        if(event.key === 'Enter') {
+    onInputKeyDown(event: React.KeyboardEvent<HTMLInputElement>): void {
+        if (event.key === 'Enter') {
             this.onSendMessage();
             event.preventDefault();
             return;
         }
     }
 
-    renderChatMessage(data: messageObject, index:number) {
+    renderChatMessage(data: messageObject, index: number): ReactNode {
         let userData = data.senderId ? this.gameApi.getUserDataById(data.senderId) : this.systemUser;
-        let isOwnMessage = data.senderId === ProfileManager.getId();
+        let isOwnMessage = data.senderId === profileManager.getId();
 
         let messageClasses = 'chat-message';
-        if(isOwnMessage)
+        if (isOwnMessage)
             messageClasses += ' own-message';
 
         return (
@@ -89,7 +89,7 @@ export default class ExampleChatGame extends React.Component<{},IState> implemen
         );
     }
 
-    render() {
+    render(): ReactNode {
         return (
             <div id={"exampleChat"}>
                 <div className={"chat-history"}>
@@ -97,7 +97,7 @@ export default class ExampleChatGame extends React.Component<{},IState> implemen
                         senderId: null,
                         receivedAt: null,
                         text: 'Start of chat history'
-                    },-1)}
+                    }, -1)}
                     {this.state.chatHistory.map(this.renderChatMessage.bind(this))}
                 </div>
                 <div className={"chat-input"}>

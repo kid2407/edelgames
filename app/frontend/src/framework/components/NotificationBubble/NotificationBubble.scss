@@ -12,7 +12,7 @@ $animationTime: 3s;
     padding: 0.5rem 1rem;
     border-radius: 4px;
     animation: linear Bubble-Notification $animationTime forwards;
-    transition: opacity $animationTime/10;
+    transition: opacity calc($animationTime/10);
 
     &.bubble- {
       &error {

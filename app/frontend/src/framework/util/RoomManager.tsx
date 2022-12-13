@@ -2,18 +2,21 @@
  * Stores and manages all data of the current room
  */
 import User from "./User";
-import EventManager, {EventNameListObj} from "./EventManager";
+import eventManager, {EventDataObject} from "./EventManager";
 
-export const RoomEventNames: EventNameListObj = {
+export const RoomEventNames = {
     roomChangedEventNotified: "roomChangedEventNotified",
     lobbyRoomsChangedEventNotified: "lobbyRoomsChangedEventNotified",
-    roomUpdated: "roomUpdated"
+    roomUpdated: "roomUpdated",
+    returnToLobby: "returnToLobby",
+    createNewRoom: "createNewRoom",
+    joinRoom: "joinRoom"
 }
 
 export type ServerRoomMember = {
     id: string;
     username: string;
-    picture: string|null;
+    picture: string | null;
     isRoomMaster: boolean;
 }
 
@@ -25,26 +28,28 @@ type ServerRoomObject = {
 }
 
 
-export class RoomManagerSingleton {
+class RoomManager {
 
     private roomId: string = 'lobby';
     private roomName: string = 'Lobby';
     private roomMembers: User[] = [];
-    private roomMaster: User|null = null;
+    private roomMaster: User | null = null;
     private currentGameId: string = '';
 
     constructor() {
-        EventManager.subscribe(RoomEventNames.roomChangedEventNotified, this.onRoomChangedChannelNotified.bind(this))
+        eventManager.subscribe(RoomEventNames.roomChangedEventNotified, this.onRoomChangedChannelNotified.bind(this))
     }
 
-    onRoomChangedChannelNotified(data: ServerRoomObject): void {
+    onRoomChangedChannelNotified(data: EventDataObject): void {
+        data = data as ServerRoomObject;
+
         this.roomId = data.roomId;
         this.roomName = data.roomName;
         this.currentGameId = data.currentGameId;
 
         // calculate new room members
-        let roomMembers : User[] = [];
-        for(let member of data.roomMembers) {
+        let roomMembers: User[] = [];
+        for (let member of data.roomMembers) {
             let user = new User(
                 member.id,
                 member.username,
@@ -52,7 +57,7 @@ export class RoomManagerSingleton {
                 member.isRoomMaster
             );
 
-            if(member.isRoomMaster) {
+            if (member.isRoomMaster) {
                 this.roomMaster = user;
             }
 
@@ -60,15 +65,30 @@ export class RoomManagerSingleton {
         }
         this.roomMembers = roomMembers;
 
-        EventManager.publish(RoomEventNames.roomUpdated);
+        eventManager.publish(RoomEventNames.roomUpdated);
     }
 
-    public getRoomId():         string      { return this.roomId; }
-    public getRoomName():       string      { return this.roomName; }
-    public getRoomMembers():    User[]      { return this.roomMembers; }
-    public getRoomMaster():     User|null   { return this.roomMaster; }
-    public getCurrentGameId():  string      {return this.currentGameId; }
+    public getRoomId(): string {
+        return this.roomId;
+    }
+
+    public getRoomName(): string {
+        return this.roomName;
+    }
+
+    public getRoomMembers(): User[] {
+        return this.roomMembers;
+    }
+
+    public getRoomMaster(): User | null {
+        return this.roomMaster;
+    }
+
+    public getCurrentGameId(): string {
+        return this.currentGameId;
+    }
 }
 
-const RoomManager = new RoomManagerSingleton();
-export default RoomManager;
+const roomManager = new RoomManager();
+export default roomManager;
+export type RoomManagerType = typeof roomManager;

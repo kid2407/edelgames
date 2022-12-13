@@ -7,7 +7,7 @@ export default class Lobby extends React.Component {
     render() {
         return (
             <div id="screenLobby">
-                <RoomListBox />
+                <RoomListBox/>
             </div>
         );
     }
