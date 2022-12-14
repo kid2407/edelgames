@@ -29,18 +29,18 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                     <thead>
                     <tr>
                         <th>Kategorie</th>
-                        {this.props.players.map(p => <th>{"User: " + roomManager.getRoomMembers().find(u => u.getId() === p)?.getUsername()}</th>)}
+                        {this.props.players.map(p => <th>{roomManager.getRoomMembers().find(u => u.getId() === p)?.getUsername()}</th>)}
                     </tr>
                     </thead>
                     <tbody>
-                    {this.props.categories.map(c => <tr>
+                    {this.props.categories.map((c, i) => <tr>
                         <td>{c}</td>
-                        {this.props.players.map((id, i) => <td key={`guess_${id}_${this.props.letter}_${i}`}>{this.props.guesses[id][this.props.letter][i]}</td>)}
+                        {this.props.players.map(id => <td key={`guess_${id}_${this.props.letter}_${i}`}>{this.props.guesses[id]?.[this.props.letter]?.[i]}</td>)}
                     </tr>)}
                     </tbody>
                 </table>
                 <br/>
-                {this.props.isRoomMaster ? <button onClick={this.onNextRound.bind(this)}>Nächste Runde</button> : ""}
+                {this.props.isRoomMaster ? <button onClick={this.onNextRound.bind(this)}>{this.props.round == this.props.max_rounds ? "Zum Endergebnis" : "Nächste Runde"}</button> : ""}
             </div>
         );
     }

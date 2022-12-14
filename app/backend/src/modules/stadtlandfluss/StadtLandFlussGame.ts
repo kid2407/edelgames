@@ -143,8 +143,14 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     }
 
     onNextRound(): void {
-        this.gameState.round += 1
-        this.gameState.letter = this.getRandomLetter()
+        if (this.gameState.round < this.gameState.config.rounds) {
+            this.gameState.round += 1
+            this.gameState.letter = this.getRandomLetter()
+            this.gameState.gamePhase = this.gamePhases.GUESSING
+        } else {
+            this.gameState.gamePhase = this.gamePhases.END_SCREEN
+        }
+
         this.publishGameState()
     }
 
