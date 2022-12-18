@@ -2,7 +2,6 @@ import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
 import debug from "../../framework/util/debug";
-import roomManager from "../../framework/RoomManager";
 
 type gameConfig = {
     categories: string[],
@@ -15,6 +14,14 @@ type guesses = {
     }
 }
 
+type points = {
+    [letter: string]: {
+        [category: number]: {
+            [userId: string]: number
+        }
+    }
+}
+
 type gameState = {
     active: boolean,
     players: object | any,
@@ -23,7 +30,8 @@ type gameState = {
     guesses: guesses,
     gamePhase: string,
     letter: string,
-    ready_users: string[]
+    ready_users: string[],
+    points: points
 }
 
 export default class StadtLandFlussGame implements ModuleGameInterface {
@@ -40,7 +48,13 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         END_SCREEN: 'end_screen'
     }
 
-    initialGameState: gameState = {
+    private readonly guessPoints = {
+        INVALID: 0,
+        MULTIPLE: 10,
+        UNIQUE: 20
+    }
+
+    private readonly initialGameState: gameState = {
         active: false,
         config: {
             categories: ["Stadt", "Land", "Fluss"],
@@ -51,7 +65,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         round: 0,
         gamePhase: this.gamePhases.SETUP,
         letter: "",
-        ready_users: []
+        ready_users: [],
+        points: {}
     }
 
     log(logLevel: number = 0, ...args: any[]) {
@@ -67,10 +82,11 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.roomApi.addEventHandler("updateGuesses", this.onUpdateGuesses.bind(this))
         this.roomApi.addEventHandler("requestGameState", this.onRequestGameState.bind(this))
         this.roomApi.addEventHandler("unready", this.onUnready.bind(this))
+        this.roomApi.addEventHandler("playAgain", this.onPlayAgain.bind(this))
 
         this.roomApi.addUserJoinedHandler(this.onUserJoin.bind(this))
         this.roomApi.addUserLeaveHandler(this.onUserLeave.bind(this))
-        this.gameState = this.initialGameState
+        this.gameState = {...this.initialGameState}
         for (let roomMember of this.roomApi.getRoomsMembers()) {
             this.gameState.players[roomMember.getId()] = roomMember
         }
@@ -91,7 +107,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             guesses: state.guesses,
             gamePhase: state.gamePhase,
             letter: state.letter,
-            ready_users: state.ready_users.length
+            ready_users: state.ready_users.length,
+            points: state.points
         }
 
         this.log(0, "sending new game state:", toPublish)
@@ -100,6 +117,58 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         } else {
             this.roomApi.sendRoomMessage("updateGameState", toPublish)
         }
+    }
+
+    private calculatePointsForRound(): { [category: number]: { [userId: string]: number } } {
+        let pointsForRound: { [category: number]: { [userId: string]: number } } = {}
+        let letter = this.gameState.letter
+        let guesses = this.gameState.guesses
+        let guessForUser = []
+        let guessesByCategory = new Map<number, { [guess: string]: string[] }>()
+        let usersForGuess: string[]
+        let guessesForSingleCategory: { [guess: string]: string[] } = {}
+
+        for (let userId in guesses) {
+            if (guesses.hasOwnProperty(userId)) {
+                guessForUser = guesses[userId][letter]
+                guessForUser.forEach((guess, categoryIndex) => {
+                    if (!guessesByCategory.has(categoryIndex)) {
+                        guessesByCategory.set(categoryIndex, {})
+                    }
+                    guessesForSingleCategory = guessesByCategory.get(categoryIndex)
+                    usersForGuess = guessesForSingleCategory.hasOwnProperty(guess) ? guessesForSingleCategory[guess] : []
+                    usersForGuess.push(userId)
+                    guessesForSingleCategory[guess] = usersForGuess
+                    guessesByCategory.set(categoryIndex, guessesForSingleCategory)
+                })
+            }
+        }
+
+        guessesByCategory.forEach((entries, categoryIndex) => {
+                pointsForRound[categoryIndex] = {}
+                for (let currentGuess in entries) {
+                    if (entries.hasOwnProperty(currentGuess)) {
+                        let usersForCurrentGuess = entries[currentGuess]
+                        let pointsForGuess: number
+                        if (!currentGuess.toLowerCase().startsWith(this.gameState.letter.toLowerCase())) {
+                            pointsForGuess = this.guessPoints.INVALID
+                        }
+                        // Only one player has made this guess
+                        else if (usersForCurrentGuess.length === 1) {
+                            pointsForGuess = this.guessPoints.UNIQUE
+                            // Two or more players have made this guess
+                        } else if (usersForCurrentGuess.length > 1) {
+                            pointsForGuess = this.guessPoints.MULTIPLE
+                        }
+                        usersForCurrentGuess.forEach(u => {
+                            pointsForRound[categoryIndex][u] = pointsForGuess
+                        })
+                    }
+                }
+            }
+        )
+
+        return pointsForRound
     }
 
     onRequestGameState(eventData: { senderId: string, messageTypeId: string }) {
@@ -154,12 +223,12 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.publishGameState()
     }
 
-    onUpdateGuesses(eventData: { senderId: string, guesses: string[] }) {
+    onUpdateGuesses(eventData: { senderId: string, guesses: string[], ready: boolean }) {
         if (!this.gameState.guesses.hasOwnProperty(eventData.senderId)) {
             this.gameState.guesses[eventData.senderId] = {}
         }
         this.gameState.guesses[eventData.senderId][this.gameState.letter] = eventData.guesses
-        if (!(eventData.senderId in this.gameState.ready_users)) {
+        if (eventData.ready && !(eventData.senderId in this.gameState.ready_users)) {
             this.gameState.ready_users.push(eventData.senderId)
         }
 
@@ -167,6 +236,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         if (this.gameState.ready_users.length === Object.keys(this.gameState.players).length) {
             this.gameState.gamePhase = this.gamePhases.ROUND_RESULTS
             this.gameState.ready_users = []
+            this.gameState.points[this.gameState.letter] = this.calculatePointsForRound()
             this.log(0, "Switching to round results.")
         }
 
@@ -178,7 +248,17 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.publishGameState()
     }
 
-    getRandomLetter(tries: number = 0): string {
+    onPlayAgain() {
+        let newState = this.initialGameState
+        newState.config = this.gameState.config
+        newState.players = this.gameState.players
+
+        this.gameState = newState
+        this.publishGameState()
+    }
+
+    getRandomLetter(tries: number = 0):
+        string {
         let letter = String.fromCharCode(Math.floor(Math.random() * 26) + 65)
         if (letter in this.usedLetters) {
             if (tries >= 26) {

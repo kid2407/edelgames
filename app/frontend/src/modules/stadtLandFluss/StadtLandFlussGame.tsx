@@ -20,6 +20,14 @@ export type Guesses = {
     }
 }
 
+export type Points= {
+    [letter: string]: {
+        [category: number]: {
+            [userId: string]: number
+        }
+    }
+}
+
 export type gameState = {
     active: boolean,
     players: string[],
@@ -28,7 +36,8 @@ export type gameState = {
     guesses: Guesses,
     gamePhase: string,
     letter: string,
-    ready_users: number
+    ready_users: number,
+    points:Points
 }
 
 export default class StadtLandFlussGame extends Component<{}, gameState> implements ModuleGameInterface {
@@ -48,7 +57,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         round: 0,
         gamePhase: 'setup',
         letter: "",
-        ready_users: 0
+        ready_users: 0,
+        points:{}
     }
 
     constructor(props: any) {
@@ -74,7 +84,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             round: eventData.round,
             gamePhase: eventData.gamePhase,
             letter: eventData.letter,
-            ready_users: eventData.ready_users
+            ready_users: eventData.ready_users,
+            points:eventData.points
         })
     }
 
@@ -97,9 +108,9 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
                                     max_rounds={this.state.config.rounds} round={this.state.round} ready_users={this.state.ready_users} user_count={roomManager.getRoomMembers().length}/>
             case "round_results":
                 return <SLFRoundResults gameApi={this.gameApi} letter={this.state.letter} round={this.state.round} max_rounds={this.state.config.rounds}
-                                        guesses={this.state.guesses} categories={this.state.config.categories} players={this.state.players} isRoomMaster={this.isRoomMaster()}/>
+                                        guesses={this.state.guesses} categories={this.state.config.categories} players={this.state.players} isRoomMaster={this.isRoomMaster()} points={this.state.points}/>
             case "end_screen":
-                return <SLFEndResults/>
+                return <SLFEndResults points={this.state.points} isRoomMaster={this.isRoomMaster()} gameApi={this.gameApi}/>
         }
     }
 

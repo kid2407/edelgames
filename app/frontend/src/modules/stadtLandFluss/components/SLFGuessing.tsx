@@ -17,60 +17,32 @@ type PropData = {
 
 export default class SLFGuessing extends Component<PropData, {}> {
 
-    generateTableHead() {
-        return [<th>Buchstabe</th>, this.props.categories.map(c => <th>{c}</th>)]
-    }
+    private blurTimeout: NodeJS.Timeout | null = null
 
-    getGuessesForUserByLetters(): { [letter: string]: string[] } {
-        let forUser = this.props.guesses[profileManager.getId()]
-        if (typeof forUser !== "undefined") {
-            return forUser
-        }
-        return {}
-    }
-
-    generateTableBody() {
-        let letter: string, guessesPerLetter: string[]
-        let generateTable = []
-        let foundDataForCurrentLetter = false
-        let guessesFromUser = this.getGuessesForUserByLetters()
-
-        for (letter in guessesFromUser) {
-            if (guessesFromUser.hasOwnProperty(letter)) {
-                guessesPerLetter = guessesFromUser[letter]
-                if (letter === this.props.letter) {
-                    generateTable.push(
-                        <tr>
-                            <td key={this.props.letter}>{this.props.letter}</td>
-                            {Object.values(guessesPerLetter).map((guess, i) => <td key={this.props.letter + i}><input defaultValue={guess}/></td>)}
-                        </tr>
-                    )
-                    foundDataForCurrentLetter = true
-                } else {
-                    generateTable.push(
-                        <tr>
-                            <td>{letter}</td>
-                            {Object.values(guessesPerLetter).map(guess => <td>{guess}</td>)}
-                        </tr>
-                    )
-                }
-            }
+    private sendGuessesToServer(ready: boolean) {
+        // @ts-ignore
+        let guessInputs = document.getElementById("slfGuessing").getElementsByTagName("input")
+        let guesses = []
+        for (let i = 0; i < guessInputs.length; i++) {
+            // @ts-ignore
+            guesses.push(guessInputs.item(i).value.trim())
         }
 
-        if (!foundDataForCurrentLetter) {
-            generateTable.push(
-                <tr>
-                    <td key={this.props.letter}>{this.props.letter}</td>
-                    {[...Array(this.props.categories.length - 1)].map(() => <td><input type={"text"}/></td>)}
-                    <td><input type={"text"}/></td>
-                </tr>
-            )
-        }
-
-        return generateTable
+        console.log(guesses)
+        this.props.gameApi.sendMessageToServer("updateGuesses", {guesses: guesses, ready: ready})
     }
 
-    private onUpdateGuesses() {
+    private onBlur() {
+        if (this.blurTimeout !== null) {
+            clearTimeout(this.blurTimeout)
+        }
+        this.blurTimeout = setTimeout(this.sendGuessesToServer.bind(this, false), 2500)
+    }
+
+    private onSubmitGuesses() {
+        if (this.blurTimeout !== null){
+            clearTimeout(this.blurTimeout)
+        }
         let guessInputCollection: HTMLCollectionOf<HTMLInputElement> = document.getElementById("slfGuessing")?.getElementsByTagName("input") as HTMLCollectionOf<HTMLInputElement>
         let button: HTMLButtonElement = document.getElementById("submitGuesses") as HTMLButtonElement
 
@@ -86,16 +58,7 @@ export default class SLFGuessing extends Component<PropData, {}> {
             for (let i = 0; i < guessInputCollection.length; i++) {
                 guessInputCollection.item(i)?.classList.add("blocked")
             }
-            // @ts-ignore
-            let guessInputs = document.getElementById("slfGuessing").getElementsByTagName("input")
-            let guesses = []
-            for (let i = 0; i < guessInputs.length; i++) {
-                // @ts-ignore
-                guesses.push(guessInputs.item(i).value.trim())
-            }
-
-            console.log(guesses)
-            this.props.gameApi.sendMessageToServer("updateGuesses", {guesses: guesses})
+            this.sendGuessesToServer(true)
         }
     }
 
@@ -115,13 +78,12 @@ export default class SLFGuessing extends Component<PropData, {}> {
                     <tr>
                         <td>{c}</td>
                         {/* @ts-ignore */}
-                        <td><input type={"text"} key={`${profileManager.getId()}_${this.props.letter}_${c}`} defaultValue={this.props.guesses[profileManager.getId()]?.[this.props.letter]?.[c]}/></td>
+                        <td><input onBlur={this.onBlur.bind(this)} type={"text"} key={`${profileManager.getId()}_${this.props.letter}_${c}`} defaultValue={this.props.guesses[profileManager.getId()]?.[this.props.letter]?.[c]}/></td>
                     </tr>)}
-                {/*{this.generateTableBody()}*/}
                 </tbody>
             </table>
             <br/>
-            <button id={"submitGuesses"} onClick={this.onUpdateGuesses.bind(this)}>Fertig! ({this.props.ready_users} von {this.props.user_count})</button>
+            <button id={"submitGuesses"} onClick={this.onSubmitGuesses.bind(this)}>Fertig! ({this.props.ready_users} von {this.props.user_count})</button>
         </div>);
     }
 }
