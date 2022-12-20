@@ -1,9 +1,9 @@
 import React from "react";
-import RoomManager from "../../util/RoomManager";
-import ModuleRegistry from "../../modules/ModuleRegistry";
+import roomManager from "../../util/RoomManager";
 import User from "../../util/User";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
-import ProfileManager from "../../util/ProfileManager";
+import profileManager from "../../util/ProfileManager";
+import moduleRegistry from "../../modules/ModuleRegistry";
 
 export default class GameRoom extends React.Component {
 
@@ -15,7 +15,7 @@ export default class GameRoom extends React.Component {
                               id={member.getId()}/>
                 <div className="memberDataDiv">
                     <span className="memberName">{member.getUsername()}</span>
-                    {(member.getId() === ProfileManager.getId() ? <span>&nbsp;(You)</span> : null)}
+                    {(member.getId() === profileManager.getId() ? <span>&nbsp;(You)</span> : null)}
                     {(member.isRoomMaster() ? <span className="signature-text">&nbsp;A</span> : null)}
                 </div>
                 <br/>
@@ -24,8 +24,8 @@ export default class GameRoom extends React.Component {
     }
 
     render() {
-        let currentGameId = RoomManager.getCurrentGameId();
-        let currentGameModule = ModuleRegistry.getModuleById(currentGameId);
+        let currentGameId = roomManager.getCurrentGameId();
+        let currentGameModule = moduleRegistry.getModuleById(currentGameId);
 
         if (!currentGameModule) {
             return (
@@ -37,7 +37,7 @@ export default class GameRoom extends React.Component {
 
         return (
             <div id="screenGame">
-                <div id="memberList">{RoomManager.getRoomMembers().map(this.renderMember)}</div>
+                <div id="memberList">{roomManager.getRoomMembers().map(this.renderMember)}</div>
                 {currentGameModule.renderGame()}
             </div>
         );
