@@ -233,6 +233,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             this.gameState.gamePhase = this.gamePhases.END_SCREEN
         }
 
+        this.gameState.point_overrides={}
+
         this.publishGameState()
     }
 

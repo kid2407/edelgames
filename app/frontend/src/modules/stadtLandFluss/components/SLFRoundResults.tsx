@@ -73,7 +73,7 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                         {this.props.players.map(id =>
                             <td className={"points_" + this.props.points[this.props.letter]?.[i]?.[id]} key={`guess_${id}_${this.props.letter}_${i}`}>
                                 {this.props.guesses[id]?.[this.props.letter]?.[i]}&nbsp;
-                                {id !== profileManager.getId() ? <button id={`toggleDownvote_${id}_${i}`}
+                                {(id !== profileManager.getId() && this.props.points[this.props.letter]?.[i]?.[id] > 0) ? <button id={`toggleDownvote_${id}_${i}`}
                                     className={"downvoteButton" + (this.props.point_overrides[id]?.[i]?.includes(profileManager.getId()) ? " active": "")}
                                     onClick={this.toggleDownvote.bind(this, id, i)}>Downvote ({this.props.point_overrides[id]?.[i]?.length??0}/{this.props.players.length-1})</button>:""}
                             </td>
