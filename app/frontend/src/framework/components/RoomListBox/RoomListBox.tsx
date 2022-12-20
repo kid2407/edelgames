@@ -1,10 +1,10 @@
 import React, {ReactNode} from "react";
 import ProfileImage from "../ProfileImage/ProfileImage";
-import debug from "../../util/debug";
 import eventManager, {EventDataObject} from "../../util/EventManager";
 import {RoomEventNames, ServerRoomMember} from "../../util/RoomManager";
 import socketManager from "../../util/SocketManager";
 import profileManager from "../../util/ProfileManager";
+import {clientLogger} from "../../util/Logger";
 
 type ForeignRoomObject = {
     roomId: string;
@@ -79,7 +79,7 @@ export default class RoomListBox extends React.Component<{}, IState> {
         if (usePassword) {
             passphrase = prompt('Enter room password: ', '');
         }
-        debug(`Attempting to join room ${roomId} with passphrase ${passphrase}`);
+        clientLogger.debug(`Attempting to join room ${roomId} with passphrase ${passphrase}`);
 
         socketManager.sendEvent(RoomEventNames.joinRoom, {
             roomId: roomId,

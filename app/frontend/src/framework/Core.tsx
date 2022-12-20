@@ -7,8 +7,8 @@ import NotificationBubble from "./components/NotificationBubble/NotificationBubb
 import eventManager from "./util/EventManager";
 import socketManager, {SocketEventNames} from "./util/SocketManager";
 import roomManager, {RoomEventNames} from "./util/RoomManager";
-import debug from "./util/debug";
 import profileManager from "./util/ProfileManager";
+import {clientLogger} from "./util/Logger";
 
 export default class Core extends React.Component {
 
@@ -17,7 +17,7 @@ export default class Core extends React.Component {
 
         // important debug statement, as it initialises the profile manager and its event listeners.
         // even if this would be removed, a reference to the profileManager object has to stay!
-        debug(typeof profileManager + ' loaded');
+        clientLogger.debug(typeof profileManager + ' loaded');
     }
 
     componentDidMount() {
