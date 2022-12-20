@@ -1,6 +1,5 @@
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
-import debug from "../../framework/util/debug";
 
 /*
  * The actual game instance, that controls and manages the game
