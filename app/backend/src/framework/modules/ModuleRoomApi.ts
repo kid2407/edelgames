@@ -1,7 +1,7 @@
 import Room from "../Room";
 import SocketManager from "../util/SocketManager";
 import ModuleGameInterface from "./ModuleGameInterface";
-import debug from "../util/debug";
+import {systemLogger} from "../util/Logger";
 
 type internalEventDataObject = {
     [key: string]: any
@@ -54,7 +54,7 @@ export default class ModuleRoomApi {
         }
         this.eventListeners[event].push(handler);
 
-        debug(1, 'registering eventlistener for ' + event);
+        systemLogger.info('registering event listener for ' + event);
     }
 
     // just an alias for addEventHandler('userJoined', handler) for better usability
