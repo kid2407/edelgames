@@ -2,6 +2,7 @@ import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
 import debug from "../../framework/util/debug";
+import roomManager from "../../framework/RoomManager";
 
 type gameConfig = {
     categories: string[],
@@ -31,14 +32,19 @@ type gameState = {
     gamePhase: string,
     letter: string,
     ready_users: string[],
-    points: points
+    points: points,
+    point_overrides: {
+        [userId: string]: {
+            [categoryIndex: string]: string[]
+        }
+    }
 }
 
 export default class StadtLandFlussGame implements ModuleGameInterface {
     roomApi: ModuleRoomApi | null = null;
     gameState: gameState | null = null
 
-    private usedLetters: string[] = []
+    private availableLetters: string[] = Array.from({length: 26}, (v, k) => String.fromCharCode(k + 65))
 
     private readonly gamePhases = {
         SETUP: 'setup',
@@ -66,7 +72,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         gamePhase: this.gamePhases.SETUP,
         letter: "",
         ready_users: [],
-        points: {}
+        points: {},
+        point_overrides: {}
     }
 
     log(logLevel: number = 0, ...args: any[]) {
@@ -83,6 +90,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.roomApi.addEventHandler("requestGameState", this.onRequestGameState.bind(this))
         this.roomApi.addEventHandler("unready", this.onUnready.bind(this))
         this.roomApi.addEventHandler("playAgain", this.onPlayAgain.bind(this))
+        this.roomApi.addEventHandler("setDownvote", this.onToggleDownvote.bind(this))
 
         this.roomApi.addUserJoinedHandler(this.onUserJoin.bind(this))
         this.roomApi.addUserLeaveHandler(this.onUserLeave.bind(this))
@@ -108,7 +116,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             gamePhase: state.gamePhase,
             letter: state.letter,
             ready_users: state.ready_users.length,
-            points: state.points
+            points: state.points,
+            point_overrides: state.point_overrides
         }
 
         this.log(0, "sending new game state:", toPublish)
@@ -160,8 +169,12 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
                         } else if (usersForCurrentGuess.length > 1) {
                             pointsForGuess = this.guessPoints.MULTIPLE
                         }
-                        usersForCurrentGuess.forEach(u => {
-                            pointsForRound[categoryIndex][u] = pointsForGuess
+                        usersForCurrentGuess.forEach((u) => {
+                            if (this.gameState.point_overrides[u]?.[categoryIndex]?.length ?? 0 === Object.keys(this.gameState.players).length - 1) {
+                                pointsForRound[categoryIndex][u] = 0
+                            } else {
+                                pointsForRound[categoryIndex][u] = pointsForGuess
+                            }
                         })
                     }
                 }
@@ -249,7 +262,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     }
 
     onPlayAgain() {
-        let newState = this.initialGameState
+        let newState = Object.create(this.initialGameState)
         newState.config = this.gameState.config
         newState.players = this.gameState.players
 
@@ -257,19 +270,47 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.publishGameState()
     }
 
-    getRandomLetter(tries: number = 0):
-        string {
-        let letter = String.fromCharCode(Math.floor(Math.random() * 26) + 65)
-        if (letter in this.usedLetters) {
-            if (tries >= 26) {
-                console.error("No free letters available!")
-                return
-            }
-            return this.getRandomLetter(tries + 1)
-        }
-        this.usedLetters.push(letter)
+    onToggleDownvote(eventData: { senderId: string, userId: string, categoryIndex: number, isActive: boolean }): void {
+        let userId = eventData.userId
+        let categoryIndex = eventData.categoryIndex
+        let senderId = eventData.senderId
 
-        return letter
+        if (!this.gameState.point_overrides.hasOwnProperty(userId)) {
+            this.gameState.point_overrides[userId] = {}
+        }
+
+        if (!eventData.isActive) {
+            let voterIndex = this.gameState.point_overrides[userId]?.[categoryIndex]?.indexOf(senderId)
+            if (voterIndex > -1) {
+                this.gameState.point_overrides[userId]?.[categoryIndex]?.splice(voterIndex, 1)
+            }
+        } else {
+            if (!this.gameState.point_overrides[userId]?.[categoryIndex]?.includes(senderId)) {
+                if (!this.gameState.point_overrides[userId]) {
+                    this.gameState.point_overrides[userId] = {}
+                }
+                if (!this.gameState.point_overrides[userId][categoryIndex]) {
+                    this.gameState.point_overrides[userId][categoryIndex] = []
+                }
+
+                this.gameState.point_overrides[userId]?.[categoryIndex]?.push(senderId)
+            }
+        }
+
+        this.gameState.points[this.gameState.letter] = this.calculatePointsForRound()
+
+        this.publishGameState()
+    }
+
+    private getRandomLetter(): string {
+        let letterIndex = Math.floor(Math.random() * this.availableLetters.length)
+        if (this.availableLetters.length > 0) {
+            let letter = this.availableLetters[letterIndex]
+            this.availableLetters.splice(letterIndex, 1)
+            return letter
+        }
+
+        throw new Error("For some reason more than 26 round were played. There are no more letters to use.")
     }
 
 }

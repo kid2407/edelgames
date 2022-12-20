@@ -20,11 +20,17 @@ export type Guesses = {
     }
 }
 
-export type Points= {
+export type Points = {
     [letter: string]: {
         [category: number]: {
             [userId: string]: number
         }
+    }
+}
+
+export type PointOverrides = {
+    [userId: string]: {
+        [categoryIndex: string]: string[]
     }
 }
 
@@ -37,7 +43,12 @@ export type gameState = {
     gamePhase: string,
     letter: string,
     ready_users: number,
-    points:Points
+    points: Points,
+    point_overrides: {
+        [userId: string]: {
+            [categoryIndex: string]: string[]
+        }
+    }
 }
 
 export default class StadtLandFlussGame extends Component<{}, gameState> implements ModuleGameInterface {
@@ -58,7 +69,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         gamePhase: 'setup',
         letter: "",
         ready_users: 0,
-        points:{}
+        points: {},
+        point_overrides: {}
     }
 
     constructor(props: any) {
@@ -85,7 +97,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             gamePhase: eventData.gamePhase,
             letter: eventData.letter,
             ready_users: eventData.ready_users,
-            points:eventData.points
+            points: eventData.points,
+            point_overrides: eventData.point_overrides
         })
     }
 
@@ -108,7 +121,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
                                     max_rounds={this.state.config.rounds} round={this.state.round} ready_users={this.state.ready_users} user_count={roomManager.getRoomMembers().length}/>
             case "round_results":
                 return <SLFRoundResults gameApi={this.gameApi} letter={this.state.letter} round={this.state.round} max_rounds={this.state.config.rounds}
-                                        guesses={this.state.guesses} categories={this.state.config.categories} players={this.state.players} isRoomMaster={this.isRoomMaster()} points={this.state.points}/>
+                                        guesses={this.state.guesses} categories={this.state.config.categories} players={this.state.players} isRoomMaster={this.isRoomMaster()}
+                                        points={this.state.points} point_overrides={this.state.point_overrides}/>
             case "end_screen":
                 return <SLFEndResults points={this.state.points} isRoomMaster={this.isRoomMaster()} gameApi={this.gameApi}/>
         }

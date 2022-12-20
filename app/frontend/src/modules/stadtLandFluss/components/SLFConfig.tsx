@@ -10,7 +10,7 @@ export default class SLFConfig extends Component<{ isRoomMaster: boolean, gameAp
             let categoriesString = settingsDiv.getElementsByClassName("categories")[0].value
             this.props.gameApi.sendMessageToServer("updateSettings", {
                 // @ts-ignore
-                rounds: settingsDiv.getElementsByClassName("rounds")[0].value,
+                rounds: parseInt(settingsDiv.getElementsByClassName("rounds")[0].value),
                 categories: categoriesString ? categoriesString.split(",") : []
             })
         }

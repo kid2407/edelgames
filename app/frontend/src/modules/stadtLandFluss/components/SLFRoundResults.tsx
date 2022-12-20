@@ -1,7 +1,8 @@
 import {Component, ReactNode} from "react";
-import {Guesses, Points} from "../StadtLandFlussGame";
+import {Guesses, PointOverrides, Points} from "../StadtLandFlussGame";
 import roomManager from "../../../framework/util/RoomManager";
 import ModuleGameApi from "../../../framework/modules/ModuleGameApi";
+import profileManager from "../../../framework/util/ProfileManager";
 
 type RoundResultProps = {
     isRoomMaster: boolean
@@ -12,7 +13,8 @@ type RoundResultProps = {
     players: string[],
     guesses: Guesses,
     categories: string[],
-    points: Points
+    points: Points,
+    point_overrides: PointOverrides
 }
 
 export default class SLFRoundResults extends Component<RoundResultProps, {}> {
@@ -37,6 +39,22 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
         return Object.values(summed)
     }
 
+    private toggleDownvote(userId: string, categoryIndex: number) {
+        let newState: boolean
+        let button = document.getElementById(`toggleDownvote_${userId}_${categoryIndex}`)
+        if (button) {
+            if (button.classList.contains("active")) {
+                newState = false
+                button.classList.remove("active")
+            } else {
+                newState = true
+                button.classList.add("active")
+            }
+
+            this.props.gameApi.sendMessageToServer("setDownvote", {userId: userId, categoryIndex: categoryIndex, isActive: newState})
+        }
+    }
+
     render(): ReactNode {
         return (
             <div id={"slfRoundResults"}>
@@ -52,7 +70,14 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                     <tbody>
                     {this.props.categories.map((c, i) => <tr>
                         <td>{c}</td>
-                        {this.props.players.map(id => <td className={"points_" + this.props.points[this.props.letter]?.[i]?.[id]} key={`guess_${id}_${this.props.letter}_${i}`}>{this.props.guesses[id]?.[this.props.letter]?.[i]}</td>)}
+                        {this.props.players.map(id =>
+                            <td className={"points_" + this.props.points[this.props.letter]?.[i]?.[id]} key={`guess_${id}_${this.props.letter}_${i}`}>
+                                {this.props.guesses[id]?.[this.props.letter]?.[i]}&nbsp;
+                                {id !== profileManager.getId() ? <button id={`toggleDownvote_${id}_${i}`}
+                                    className={"downvoteButton" + (this.props.point_overrides[id]?.[i]?.includes(profileManager.getId()) ? " active": "")}
+                                    onClick={this.toggleDownvote.bind(this, id, i)}>Downvote ({this.props.point_overrides[id]?.[i]?.length??0}/{this.props.players.length-1})</button>:""}
+                            </td>
+                        )}
                     </tr>)}
                     <tr className={"boldChildren"}>
                         <td>Punkte</td>
@@ -61,7 +86,7 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                     </tbody>
                 </table>
                 <br/>
-                {this.props.isRoomMaster ? <button onClick={this.onNextRound.bind(this)}>{this.props.round == this.props.max_rounds ? "Zum Endergebnis" : "Nächste Runde"}</button> : ""}
+                {this.props.isRoomMaster ? <button onClick={this.onNextRound.bind(this)}>{this.props.round === this.props.max_rounds ? "Zum Endergebnis" : "Nächste Runde"}</button> : ""}
             </div>
         );
     }
