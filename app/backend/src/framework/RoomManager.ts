@@ -1,13 +1,13 @@
 import Room from "./Room";
 import User from "./User";
-import SocketMessenger from "./util/SocketMessenger";
+import SocketManager from "./util/SocketManager";
 import Lobby from "./Lobby";
 
-export class RoomManagerSingleton {
+
+class RoomManager {
 
     private readonly lobby: Lobby;
     private rooms: Room[] = [];
-
 
     constructor() {
         // create lobby room
@@ -18,17 +18,19 @@ export class RoomManagerSingleton {
     public createRoom(firstUser: User): void {
         let newRoom = new Room(firstUser);
         this.rooms.push(newRoom);
-        firstUser.switchRoom(newRoom).then(newRoom.sendRoomChangedBroadcast.bind(newRoom));
+        firstUser.switchRoom(newRoom).then(
+            newRoom.sendRoomChangedBroadcast.bind(newRoom)
+        );
     }
 
     // rooms will be automatically removed, when the last user leaves
     public removeRoom(room: Room): void {
-        if(room.getMemberCount() === 0) {
+        if (room.getMemberCount() === 0) {
             this.rooms = this.rooms.filter(r => r !== room);
         }
     }
 
-    public getRoomById(roomId: string): Room|null  {
+    public getRoomById(roomId: string): Room {
         return this.rooms.find(room => room.getRoomId() === roomId) || null;
     }
 
@@ -41,15 +43,15 @@ export class RoomManagerSingleton {
     }
 
     public updateLobbyMembersRoomData(): void {
-        SocketMessenger.broadcast(this.getLobbyRoom().getRoomId(), 'lobbyRoomsChanged', this.getLobbyMemberRoomData())
+        SocketManager.broadcast(this.getLobbyRoom().getRoomId(), 'lobbyRoomsChanged', this.getLobbyMemberRoomData())
     }
 
-    public getLobbyMemberRoomData(): {rooms: object[]} {
-        let roomData: {rooms: object[]} = {
-            rooms:  []
+    public getLobbyMemberRoomData(): { rooms: object[] } {
+        let roomData: { rooms: object[] } = {
+            rooms: []
         };
 
-        for(let room of [...this.rooms, this.lobby]) {
+        for (let room of [...this.rooms, this.lobby]) {
             roomData.rooms.push({
                 roomId: room.getRoomId(),
                 roomName: room.getRoomName(),
@@ -62,5 +64,5 @@ export class RoomManagerSingleton {
 
 }
 
-const RoomManager = new RoomManagerSingleton();
-export default RoomManager;
+const roomManager = new RoomManager();
+export default roomManager;

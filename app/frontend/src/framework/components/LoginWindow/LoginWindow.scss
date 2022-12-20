@@ -1,16 +1,16 @@
 #login-backdrop {
+  width: 100vw;
+  height: 100vh;
   position: fixed;
   left: 0;
   top: 0;
-  width: 100vw;
-  height: 100vh;
+  display: flex;
+  align-items: center;
+  z-index: 500;
+  justify-content: center;
   background-color: #000000bb;
   cursor: pointer;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 500;
 
   .frame {
     display: flex;
@@ -23,15 +23,15 @@
     }
 
     .error-message {
-      color: $error;
-      margin-bottom: 1rem;
       height: 1.2rem;
+      margin-bottom: 1rem;
+      color: $error;
     }
 
     input {
       padding: 0.5rem 1rem;
-      border-radius: 4px;
       margin-bottom: 1rem;
+      border-radius: 4px;
       border: none;
     }
   }

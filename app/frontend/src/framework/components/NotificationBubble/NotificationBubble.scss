@@ -1,0 +1,47 @@
+$animationTime: 3s;
+
+#bubbleNotificationContainer {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 500;
+
+  .bubble-notification {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    animation: linear Bubble-Notification $animationTime forwards;
+    transition: opacity calc($animationTime/10);
+
+    &.bubble- {
+      &error {
+        background-color: $error;
+      }
+
+      &info {
+        background-color: $info;
+      }
+
+      &warning {
+        background-color: $warning;
+      }
+
+      &success {
+        background-color: $success;
+      }
+    }
+  }
+}
+
+@keyframes Bubble-Notification {
+  0% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

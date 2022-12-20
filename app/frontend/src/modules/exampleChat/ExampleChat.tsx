@@ -21,9 +21,10 @@ class ExampleChat implements ModuleInterface {
     }
 
     renderGame(): ReactNode {
-        return (<ExampleChatGame />);
+        return (<ExampleChatGame/>);
     }
 
 }
+
 const exampleChat = new ExampleChat();
 export default exampleChat;
