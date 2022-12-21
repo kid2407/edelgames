@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import React, {Component, ReactElement, ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import stadtLandFluss from "./StadtLandFluss";
 import ModuleGameApi from "../../framework/modules/ModuleGameApi";
@@ -8,55 +8,20 @@ import SLFConfig from "./components/SLFConfig";
 import SLFGuessing from "./components/SLFGuessing";
 import SLFRoundResults from "./components/SLFRoundResults";
 import SLFEndResults from "./components/SLFEndResults";
+import {gameState} from "./SLFTypes";
 
-type gameConfig = {
-    categories: string[],
-    rounds: number
-}
-
-export type Guesses = {
-    [userId: string]: {
-        [letter: string]: string[]
-    }
-}
-
-export type Points = {
-    [letter: string]: {
-        [category: number]: {
-            [userId: string]: number
-        }
-    }
-}
-
-export type PointOverrides = {
-    [userId: string]: {
-        [categoryIndex: string]: string[]
-    }
-}
-
-export type gameState = {
-    active: boolean,
-    players: string[],
-    config: gameConfig,
-    round: number | null,
-    guesses: Guesses,
-    gamePhase: string,
-    letter: string,
-    ready_users: number,
-    points: Points,
-    point_overrides: {
-        [userId: string]: {
-            [categoryIndex: string]: string[]
-        }
-    }
-}
-
+/**
+ * Main component for the Stadt Land Fluss game.
+ */
 export default class StadtLandFlussGame extends Component<{}, gameState> implements ModuleGameInterface {
 
     private readonly gameApi: ModuleGameApi
 
     private hasBeenMounted: boolean = false
 
+    /**
+     * The initial game state when the game is created / loaded.
+     */
     state = {
         active: false,
         config: {
@@ -78,8 +43,11 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         this.gameApi = new ModuleGameApi(stadtLandFluss, this)
     }
 
-    // this method is called, once the component is ready and setState can be used
-    componentDidMount() {
+    /**
+     * Once the component has been mounted and can accept a state, this method is called.
+     * Registers an event handler that listens for updates on the game state as well as requests an initial version from the server.
+     */
+    componentDidMount(): void {
         if (!this.hasBeenMounted) {
             this.gameApi.addEventHandler('updateGameState', this.onGameStateUpdate.bind(this));
             this.gameApi.sendMessageToServer("requestGameState", {})
@@ -87,7 +55,12 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         }
     }
 
-    onGameStateUpdate(eventData: gameState | any) {
+    /**
+     * Called when the server send a new game state, updating the existing values.
+     *
+     * @param {gameState|any} eventData
+     */
+    private onGameStateUpdate(eventData: gameState | any): void {
         this.setState({
             active: eventData.active,
             config: eventData.config,
@@ -102,17 +75,26 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
         })
     }
 
-    returnToGameSelection() {
+    /**
+     * Return to the game selection screen.
+     */
+    private returnToGameSelection(): void {
         this.gameApi.sendMessageToServer("returnToGameSelection", {})
     }
 
 
-    isRoomMaster() {
-        let roomMaster = roomManager.getRoomMaster()
-        return roomMaster !== null && profileManager.getId() === roomMaster.getId()
+    /**
+     * Determines if the current user is the room master.
+     */
+    private isRoomMaster(): boolean {
+        // @ts-ignore
+        return profileManager.getId() === roomManager.getRoomMaster().getId()
     }
 
-    getCurrentlyActiveSection() {
+    /**
+     * Return the appropriate component for the current game phase.
+     */
+    private getCurrentlyActiveSection(): ReactNode {
         switch (this.state.gamePhase) {
             case "setup":
                 return <SLFConfig gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} config={this.state.config}/>
@@ -125,14 +107,22 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
                                         points={this.state.points} point_overrides={this.state.point_overrides}/>
             case "end_screen":
                 return <SLFEndResults points={this.state.points} isRoomMaster={this.isRoomMaster()} gameApi={this.gameApi}/>
+            default:
+                return <p>Oh no - something went wrong! Unknown game phase "{this.state.gamePhase}"</p>
         }
     }
 
-    renderBackToGameSelectionButton() {
+    /**
+     * Renders the "Zur Spielauswahl" button.
+     */
+    private renderBackToGameSelectionButton(): ReactNode {
         return this.isRoomMaster() ? <button onClick={this.returnToGameSelection.bind(this)}>Zur Spielauswahl</button> : ""
     }
 
-    render() {
+    /**
+     * Render the component.
+     */
+    render(): ReactNode {
         return (
             <div id={"stadtLandFluss"}>
                 {this.renderBackToGameSelectionButton()}

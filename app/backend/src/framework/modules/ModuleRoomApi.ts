@@ -2,6 +2,7 @@ import Room from "../Room";
 import SocketManager from "../util/SocketManager";
 import ModuleGameInterface from "./ModuleGameInterface";
 import debug from "../util/debug";
+import User from "../User";
 
 type internalEventDataObject = {
     [key: string]: any
@@ -94,8 +95,12 @@ export default class ModuleRoomApi {
         this.room.setCurrentGame(null);
     }
 
-    public getRoomsMembers(){
+    public getRoomsMembers() {
         return this.room.getRoomMembers()
+    }
+
+    public getRoomMaster(): User {
+        return this.room.getRoomMaster()
     }
 
 }

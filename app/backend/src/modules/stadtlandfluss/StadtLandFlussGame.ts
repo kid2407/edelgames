@@ -2,64 +2,42 @@ import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
 import debug from "../../framework/util/debug";
-import roomManager from "../../framework/RoomManager";
+import {gameState} from "./SLFTypes";
 
-type gameConfig = {
-    categories: string[],
-    rounds: number
-}
-
-type guesses = {
-    [userId: string]: {
-        [letter: string]: string[]
-    }
-}
-
-type points = {
-    [letter: string]: {
-        [category: number]: {
-            [userId: string]: number
-        }
-    }
-}
-
-type gameState = {
-    active: boolean,
-    players: object | any,
-    config: gameConfig,
-    round: number,
-    guesses: guesses,
-    gamePhase: string,
-    letter: string,
-    ready_users: string[],
-    points: points,
-    point_overrides: {
-        [userId: string]: {
-            [categoryIndex: string]: string[]
-        }
-    }
-}
-
+/**
+ * Main class for the Stadt Land Fluss game.
+ */
 export default class StadtLandFlussGame implements ModuleGameInterface {
     roomApi: ModuleRoomApi | null = null;
     gameState: gameState | null = null
 
+    /**
+     * Available / unused letters for this game.
+     */
     private availableLetters: string[] = Array.from({length: 26}, (v, k) => String.fromCharCode(k + 65))
 
+    /**
+     * The possible game phases.
+     */
     private readonly gamePhases = {
         SETUP: 'setup',
-        LETTER: 'letter',
         GUESSING: 'guessing',
         ROUND_RESULTS: 'round_results',
         END_SCREEN: 'end_screen'
     }
 
+    /**
+     * Point values for invalid, duplicate and unique guesses.
+     */
     private readonly guessPoints = {
         INVALID: 0,
         MULTIPLE: 10,
         UNIQUE: 20
     }
 
+    /**
+     * The initial game state.
+     */
     private readonly initialGameState: gameState = {
         active: false,
         config: {
@@ -80,6 +58,11 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         debug(logLevel, "[Stadt Land Fluss]", args)
     }
 
+    /**
+     * Register the relevant event handlers and set up the initial player list.
+     *
+     * @param {ModuleRoomApi} roomApi
+     */
     onGameInitialize(roomApi: ModuleRoomApi): void {
         this.roomApi = roomApi;
         this.roomApi.addEventHandler("returnToGameSelection", this.onReturnToGameSelection.bind(this))
@@ -101,10 +84,18 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     }
 
 
-    onReturnToGameSelection() {
+    /**
+     * Cancel the game and return to the game selection screen.
+     */
+    private onReturnToGameSelection() {
         this.roomApi.cancelGame()
     }
 
+    /**
+     * Send the current game state to all users or a specific one, if specified via the `user` parameter.
+     *
+     * @param {string} user
+     */
     private publishGameState(user: string | null = null) {
         let state = this.gameState
         let toPublish = {
@@ -128,6 +119,9 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         }
     }
 
+    /**
+     * Calculate the points for the current round.
+     */
     private calculatePointsForRound(): { [category: number]: { [userId: string]: number } } {
         let pointsForRound: { [category: number]: { [userId: string]: number } } = {}
         let letter = this.gameState.letter
@@ -184,12 +178,22 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         return pointsForRound
     }
 
-    onRequestGameState(eventData: { senderId: string, messageTypeId: string }) {
+    /**
+     * Send the current game state to the user who requested it.
+     *
+     * @param {{ senderId: string, messageTypeId: string }} eventData
+     */
+    private onRequestGameState(eventData: { senderId: string, messageTypeId: string }): void {
         this.publishGameState(eventData.senderId)
     }
 
 
-    onUserJoin(eventData: { newUser: User, userList: Array<{ username: string, id: string, picture: string | null, isRoomMaster: boolean }> }) {
+    /**
+     * Perform required tasks when a user joins.
+     *
+     * @param {{ newUser: User, userList: Array<{ username: string, id: string, picture: string | null, isRoomMaster: boolean }> }} eventData
+     */
+    private onUserJoin(eventData: { newUser: User, userList: Array<{ username: string, id: string, picture: string | null, isRoomMaster: boolean }> }): void {
         let user = eventData.newUser
         this.log(0, `User ${user.getId()} joined Stadt Land Fluss in room ${this.roomApi.getGameId()}.`)
         if (!this.gameState.active && !(user.getId() in this.gameState.players)) {
@@ -199,7 +203,12 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         }
     }
 
-    onUserLeave(eventData: { removedUser: User, userList: object[] }) {
+    /**
+     * Perform required tasks when a user leaves.
+     *
+     * @param eventData
+     */
+    private onUserLeave(eventData: { removedUser: User, userList: object[] }): void {
         let user = eventData.removedUser
         this.log(0, `User ${user.getId()} left the Stadt Land Fluss room ${user.getCurrentRoom().getRoomId()}.`)
         if (user.getId() in this.gameState.players) {
@@ -210,35 +219,63 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         }
     }
 
-    onUpdateSettings(newConfig: { rounds: number, categories: string[] }) {
-        if (newConfig.rounds > 26) {
-            newConfig.rounds = 26
+    /**
+     * Update the game settings.
+     *
+     * @param {{ senderId: string, rounds: number, categories: string[] }} newConfig
+     */
+    private onUpdateSettings(newConfig: { senderId: string, rounds: number, categories: string[] }): void {
+        if (this.roomApi.getRoomMaster().getId() === newConfig.senderId) {
+            if (newConfig.rounds > 26) {
+                newConfig.rounds = 26
+            }
+            this.gameState.config = newConfig
+            this.publishGameState()
         }
-        this.gameState.config = newConfig
-        this.publishGameState()
     }
 
-    onStartGame() {
-        this.gameState.active = true
-        this.gameState.gamePhase = this.gamePhases.GUESSING
-        this.onNextRound()
-    }
-
-    onNextRound(): void {
-        if (this.gameState.round < this.gameState.config.rounds) {
-            this.gameState.round += 1
-            this.gameState.letter = this.getRandomLetter()
+    /**
+     * Start the game.
+     *
+     * @param {{ senderId: string }} eventData
+     */
+    private onStartGame(eventData: { senderId: string }): void {
+        if (this.roomApi.getRoomMaster().getId() === eventData.senderId) {
+            this.gameState.active = true
             this.gameState.gamePhase = this.gamePhases.GUESSING
-        } else {
-            this.gameState.gamePhase = this.gamePhases.END_SCREEN
+            this.onNextRound(eventData)
         }
-
-        this.gameState.point_overrides={}
-
-        this.publishGameState()
     }
 
-    onUpdateGuesses(eventData: { senderId: string, guesses: string[], ready: boolean }) {
+    /**
+     * Start the next round.
+     *
+     * @param {{ senderId: string }} eventData
+     */
+    private onNextRound(eventData: { senderId: string }): void {
+        if (this.roomApi.getRoomMaster().getId() === eventData.senderId) {
+            if (this.gameState.round < this.gameState.config.rounds) {
+                this.gameState.round += 1
+                this.gameState.letter = this.getRandomLetter()
+                this.gameState.gamePhase = this.gamePhases.GUESSING
+            } else {
+                this.gameState.gamePhase = this.gamePhases.END_SCREEN
+            }
+
+            this.gameState.point_overrides = {}
+
+            this.publishGameState()
+
+            // TODO Update player list with new players
+        }
+    }
+
+    /**
+     * Update the guesses for one user for the current categories.
+     *
+     * @param {{ senderId: string, guesses: string[], ready: boolean }} eventData
+     */
+    private onUpdateGuesses(eventData: { senderId: string, guesses: string[], ready: boolean }): void {
         if (!this.gameState.guesses.hasOwnProperty(eventData.senderId)) {
             this.gameState.guesses[eventData.senderId] = {}
         }
@@ -258,21 +295,37 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.publishGameState()
     }
 
-    onUnready(eventData: { senderId: string }) {
+    /**
+     * Set a player as "unready" for the current guessing phase.
+     *
+     * @param {{ senderId: string }} eventData
+     */
+    private onUnready(eventData: { senderId: string }): void {
         this.gameState.ready_users = this.gameState.ready_users.filter(id => id !== eventData.senderId)
         this.publishGameState()
     }
 
-    onPlayAgain() {
-        let newState = Object.create(this.initialGameState)
-        newState.config = this.gameState.config
-        newState.players = this.gameState.players
+    /**
+     * Reset the game and return to the initial config screen.
+     * @param {{ senderId: string }} eventData
+     */
+    private onPlayAgain(eventData: { senderId: string }): void {
+        if (this.roomApi.getRoomMaster().getId() === eventData.senderId) {
+            let newState = Object.create(this.initialGameState)
+            newState.config = this.gameState.config
+            newState.players = this.gameState.players
 
-        this.gameState = newState
-        this.publishGameState()
+            this.gameState = newState
+            this.publishGameState()
+        }
     }
 
-    onToggleDownvote(eventData: { senderId: string, userId: string, categoryIndex: number, isActive: boolean }): void {
+    /**
+     * Toggle a downvote for one guess by one player.
+     *
+     * @param {{ senderId: string, userId: string, categoryIndex: number, isActive: boolean }} eventData
+     */
+    private onToggleDownvote(eventData: { senderId: string, userId: string, categoryIndex: number, isActive: boolean }): void {
         let userId = eventData.userId
         let categoryIndex = eventData.categoryIndex
         let senderId = eventData.senderId
@@ -304,6 +357,9 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         this.publishGameState()
     }
 
+    /**
+     * Generate a random letter to use next.
+     */
     private getRandomLetter(): string {
         let letterIndex = Math.floor(Math.random() * this.availableLetters.length)
         if (this.availableLetters.length > 0) {

@@ -1,16 +1,15 @@
 import {Component} from "react";
 import roomManager from "../../../framework/util/RoomManager";
-import {Points} from "../StadtLandFlussGame";
-import ModuleGameApi from "../../../framework/modules/ModuleGameApi";
+import {EndResultProps} from "../SLFTypes";
 
-type SLFEndResultProps = {
-    points: Points,
-    isRoomMaster: boolean,
-    gameApi: ModuleGameApi
-}
+/**
+ * Component for the end result screen.
+ */
+export default class SLFEndResults extends Component<EndResultProps, {}> {
 
-export default class SLFEndResults extends Component<SLFEndResultProps, {}> {
-
+    /**
+     * Calculate the sorted and grouped data for the end results.
+     */
     private getEndResultData(): { place: number, userId: string, username: string, points: number }[] {
         let roomMembers = roomManager.getRoomMembers()
         let finalData: { [userId: string]: { place: number, userId: string, username: string, points: number } } = {}
@@ -33,10 +32,16 @@ export default class SLFEndResults extends Component<SLFEndResultProps, {}> {
         return finalDataAsArray
     }
 
+    /**
+     * Restart the game.
+     */
     private restartGame() {
         this.props.gameApi.sendMessageToServer("playAgain", {})
     }
 
+    /**
+     * Render the component.
+     */
     render() {
         return (<div id={"slfEndResult"}>
             <table>

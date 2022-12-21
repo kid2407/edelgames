@@ -1,24 +1,22 @@
 import {Component} from "react";
-import ModuleGameApi from "../../../framework/modules/ModuleGameApi";
 import profileManager from "../../../framework/util/ProfileManager";
-import {Guesses} from "../StadtLandFlussGame";
+import {GuessingProps} from "../SLFTypes";
 
-type PropData = {
-    isRoomMaster: boolean,
-    gameApi: ModuleGameApi,
-    categories: string[],
-    letter: string,
-    guesses: Guesses,
-    round: number,
-    max_rounds: number,
-    ready_users: number,
-    user_count: number
-}
+/**
+ * Component for the guessing screen.
+ */
+export default class SLFGuessing extends Component<GuessingProps, {}> {
 
-export default class SLFGuessing extends Component<PropData, {}> {
-
+    /**
+     * Holds a reference to the timeout, after which unsaved guesses will be saved.
+     */
     private blurTimeout: NodeJS.Timeout | null = null
 
+    /**
+     * Send the current guesses to the server.
+     *
+     * @param {boolean} ready
+     */
     private sendGuessesToServer(ready: boolean) {
         // @ts-ignore
         let guessInputs = document.getElementById("slfGuessing").getElementsByTagName("input")
@@ -32,6 +30,9 @@ export default class SLFGuessing extends Component<PropData, {}> {
         this.props.gameApi.sendMessageToServer("updateGuesses", {guesses: guesses, ready: ready})
     }
 
+    /**
+     * Start timer when an input field is left.
+     */
     private onBlur() {
         if (this.blurTimeout !== null) {
             clearTimeout(this.blurTimeout)
@@ -39,6 +40,9 @@ export default class SLFGuessing extends Component<PropData, {}> {
         this.blurTimeout = setTimeout(this.sendGuessesToServer.bind(this, false), 2500)
     }
 
+    /**
+     * Submit guesses and toggle the ready state.
+     */
     private onSubmitGuesses() {
         if (this.blurTimeout !== null){
             clearTimeout(this.blurTimeout)
@@ -62,6 +66,9 @@ export default class SLFGuessing extends Component<PropData, {}> {
         }
     }
 
+    /**
+     * Render the component.
+     */
     render() {
         return (<div id={"slfGuessing"}>
             <p>Runde {this.props.round} von {this.props.max_rounds}</p>

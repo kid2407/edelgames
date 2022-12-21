@@ -1,29 +1,24 @@
 import {Component, ReactNode} from "react";
-import {Guesses, PointOverrides, Points} from "../StadtLandFlussGame";
 import roomManager from "../../../framework/util/RoomManager";
-import ModuleGameApi from "../../../framework/modules/ModuleGameApi";
 import profileManager from "../../../framework/util/ProfileManager";
+import {RoundResultProps} from "../SLFTypes";
 
-type RoundResultProps = {
-    isRoomMaster: boolean
-    gameApi: ModuleGameApi
-    round: number,
-    max_rounds: number
-    letter: string,
-    players: string[],
-    guesses: Guesses,
-    categories: string[],
-    points: Points,
-    point_overrides: PointOverrides
-}
-
+/**
+ * Component for round results.
+ */
 export default class SLFRoundResults extends Component<RoundResultProps, {}> {
 
-    private onNextRound() {
+    /**
+     * Start the next round.
+     */
+    private onNextRound(): void {
         this.props.gameApi.sendMessageToServer("nextRound", {})
     }
 
-    private sumPointsPerPlayerAndRound(): number[] {
+    /**
+     * Calculate the point total per player for this round.
+     */
+    private sumPointsPerPlayer(): number[] {
         let summed: { [userId: string]: number } = {}
 
         for (let usersPointList of Object.values(this.props.points[this.props.letter])) {
@@ -39,7 +34,13 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
         return Object.values(summed)
     }
 
-    private toggleDownvote(userId: string, categoryIndex: number) {
+    /**
+     * Update the "downvote" for a given answer by a specific user.
+     *
+     * @param {string} userId
+     * @param {number} categoryIndex
+     */
+    private toggleDownvote(userId: string, categoryIndex: number): void {
         let newState: boolean
         let button = document.getElementById(`toggleDownvote_${userId}_${categoryIndex}`)
         if (button) {
@@ -55,6 +56,9 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
         }
     }
 
+    /**
+     * Renders the component.
+     */
     render(): ReactNode {
         return (
             <div id={"slfRoundResults"}>
@@ -73,15 +77,17 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                         {this.props.players.map(id =>
                             <td className={"points_" + this.props.points[this.props.letter]?.[i]?.[id]} key={`guess_${id}_${this.props.letter}_${i}`}>
                                 {this.props.guesses[id]?.[this.props.letter]?.[i]}&nbsp;
-                                {(id !== profileManager.getId() && this.props.points[this.props.letter]?.[i]?.[id] > 0) ? <button id={`toggleDownvote_${id}_${i}`}
-                                    className={"downvoteButton" + (this.props.point_overrides[id]?.[i]?.includes(profileManager.getId()) ? " active": "")}
-                                    onClick={this.toggleDownvote.bind(this, id, i)}>Downvote ({this.props.point_overrides[id]?.[i]?.length??0}/{this.props.players.length-1})</button>:""}
+                                {(id !== profileManager.getId() && this.props.points[this.props.letter]?.[i]?.[id] > 0) ?
+                                    <button id={`toggleDownvote_${id}_${i}`}
+                                            className={"downvoteButton" + (this.props.point_overrides[id]?.[i]?.includes(profileManager.getId()) ? " active" : "")}
+                                            onClick={this.toggleDownvote.bind(this, id, i)}>Downvote ({this.props.point_overrides[id]?.[i]?.length ?? 0}/{this.props.players.length - 1})
+                                    </button> : ""}
                             </td>
                         )}
                     </tr>)}
                     <tr className={"boldChildren"}>
                         <td>Punkte</td>
-                        {this.sumPointsPerPlayerAndRound().map(p => <td>{p}</td>)}
+                        {this.sumPointsPerPlayer().map(p => <td>{p}</td>)}
                     </tr>
                     </tbody>
                 </table>

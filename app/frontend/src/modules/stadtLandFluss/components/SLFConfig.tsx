@@ -1,8 +1,14 @@
 import React, {Component} from "react";
-import ModuleGameApi from "../../../framework/modules/ModuleGameApi";
+import {ConfigProps} from "../SLFTypes";
 
-export default class SLFConfig extends Component<{ isRoomMaster: boolean, gameApi: ModuleGameApi, config: { rounds: number, categories: string[] } }, {}> {
+/**
+ * Component for the game configuration screen.
+ */
+export default class SLFConfig extends Component<ConfigProps, {}> {
 
+    /**
+     * Send the updated config to the server.
+     */
     private updateConfig() {
         let settingsDiv = document.getElementById("gameConfig")
         if (settingsDiv) {
@@ -16,10 +22,16 @@ export default class SLFConfig extends Component<{ isRoomMaster: boolean, gameAp
         }
     }
 
+    /**
+     * Start the game.
+     */
     private startGame() {
         this.props.gameApi.sendMessageToServer("startGame", {})
     }
 
+    /**
+     * Renders the component.
+     */
     render() {
         return (
             <div id={"gameConfig"}>
