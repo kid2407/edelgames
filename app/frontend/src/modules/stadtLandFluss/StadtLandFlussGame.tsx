@@ -1,4 +1,4 @@
-import React, {Component, ReactElement, ReactNode} from "react";
+import React, {Component, ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import stadtLandFluss from "./StadtLandFluss";
 import ModuleGameApi from "../../framework/modules/ModuleGameApi";
@@ -95,12 +95,16 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
      * Return the appropriate component for the current game phase.
      */
     private getCurrentlyActiveSection(): ReactNode {
+        // @ts-ignore
+        if (!this.state.players.includes(profileManager.getId())){
+            return <p>Das Spiel läuft gerade, bitte warte bis zur nächsten Runde, um mitzuspielen.</p>
+        }
         switch (this.state.gamePhase) {
             case "setup":
                 return <SLFConfig gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} config={this.state.config}/>
             case "guessing":
                 return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter}
-                                    max_rounds={this.state.config.rounds} round={this.state.round} ready_users={this.state.ready_users} user_count={roomManager.getRoomMembers().length}/>
+                                    max_rounds={this.state.config.rounds} round={this.state.round} ready_users={this.state.ready_users} user_count={this.state.players.length}/>
             case "round_results":
                 return <SLFRoundResults gameApi={this.gameApi} letter={this.state.letter} round={this.state.round} max_rounds={this.state.config.rounds}
                                         guesses={this.state.guesses} categories={this.state.config.categories} players={this.state.players} isRoomMaster={this.isRoomMaster()}

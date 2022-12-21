@@ -134,16 +134,18 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         for (let userId in guesses) {
             if (guesses.hasOwnProperty(userId)) {
                 guessForUser = guesses[userId][letter]
-                guessForUser.forEach((guess, categoryIndex) => {
-                    if (!guessesByCategory.has(categoryIndex)) {
-                        guessesByCategory.set(categoryIndex, {})
-                    }
-                    guessesForSingleCategory = guessesByCategory.get(categoryIndex)
-                    usersForGuess = guessesForSingleCategory.hasOwnProperty(guess) ? guessesForSingleCategory[guess] : []
-                    usersForGuess.push(userId)
-                    guessesForSingleCategory[guess] = usersForGuess
-                    guessesByCategory.set(categoryIndex, guessesForSingleCategory)
-                })
+                if (guessForUser) {
+                    guessForUser.forEach((guess, categoryIndex) => {
+                        if (!guessesByCategory.has(categoryIndex)) {
+                            guessesByCategory.set(categoryIndex, {})
+                        }
+                        guessesForSingleCategory = guessesByCategory.get(categoryIndex)
+                        usersForGuess = guessesForSingleCategory.hasOwnProperty(guess) ? guessesForSingleCategory[guess] : []
+                        usersForGuess.push(userId)
+                        guessesForSingleCategory[guess] = usersForGuess
+                        guessesByCategory.set(categoryIndex, guessesForSingleCategory)
+                    })
+                }
             }
         }
 
@@ -163,8 +165,9 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
                         } else if (usersForCurrentGuess.length > 1) {
                             pointsForGuess = this.guessPoints.MULTIPLE
                         }
+                        let playerCount = Object.keys(this.gameState.players).length
                         usersForCurrentGuess.forEach((u) => {
-                            if (this.gameState.point_overrides[u]?.[categoryIndex]?.length ?? 0 === Object.keys(this.gameState.players).length - 1) {
+                            if (playerCount > 1 && (this.gameState.point_overrides[u]?.[categoryIndex]?.length ?? 0 === playerCount - 1)) {
                                 pointsForRound[categoryIndex][u] = 0
                             } else {
                                 pointsForRound[categoryIndex][u] = pointsForGuess
@@ -206,7 +209,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     /**
      * Perform required tasks when a user leaves.
      *
-     * @param eventData
+     * @param {{ removedUser: User, userList: object[] }} eventData
      */
     private onUserLeave(eventData: { removedUser: User, userList: object[] }): void {
         let user = eventData.removedUser
@@ -214,6 +217,11 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         if (user.getId() in this.gameState.players) {
             delete this.gameState.players[user.getId()]
             this.gameState.ready_users = this.gameState.ready_users.filter(id => id !== user.getId())
+            if (this.gameState.guesses.hasOwnProperty(user.getId())) {
+                delete this.gameState.guesses[user.getId()]
+            }
+            this.gameState.points[this.gameState.letter] = this.calculatePointsForRound()
+
             this.publishGameState()
             this.log(0, `Removed ${user.getId()} (${user.getUsername()}) from the player list since they were in it.`)
         }
@@ -258,6 +266,10 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
                 this.gameState.round += 1
                 this.gameState.letter = this.getRandomLetter()
                 this.gameState.gamePhase = this.gamePhases.GUESSING
+
+                for (let roomMember of this.roomApi.getRoomsMembers()) {
+                    this.gameState.players[roomMember.getId()] = roomMember
+                }
             } else {
                 this.gameState.gamePhase = this.gamePhases.END_SCREEN
             }
@@ -265,8 +277,6 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             this.gameState.point_overrides = {}
 
             this.publishGameState()
-
-            // TODO Update player list with new players
         }
     }
 
@@ -313,7 +323,10 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         if (this.roomApi.getRoomMaster().getId() === eventData.senderId) {
             let newState = Object.create(this.initialGameState)
             newState.config = this.gameState.config
-            newState.players = this.gameState.players
+
+            for (let roomMember of this.roomApi.getRoomsMembers()) {
+                newState.players[roomMember.getId()] = roomMember
+            }
 
             this.gameState = newState
             this.publishGameState()
