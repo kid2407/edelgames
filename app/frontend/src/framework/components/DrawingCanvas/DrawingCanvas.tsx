@@ -11,13 +11,15 @@ import p5Types from "p5";
 export enum drawingModes {
     DRAW = 'draw',
     ERASE = 'erase',
-    FILL = 'fill'
+    FILL = 'fill',
+    CLEAR = 'clear',
 }
 
 export enum eventTypes {
     POINT = 'point',
     LINE = 'line',
-    FILL = 'fill'
+    FILL = 'fill',
+    CLEAR = 'clear'
 }
 
 export type canvasChangedEvent = {
@@ -40,6 +42,9 @@ interface IProps {
     drawingMode: drawingModes;
     drawingColor: string;
     drawingWeight: number;
+    enableManualDrawing: boolean;
+    canvasWidth: number;
+    canvasHeight: number;
 }
 
 export default class DrawingCanvas extends React.Component<IProps, {}> {
@@ -52,11 +57,16 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
         gatherDrawCommandCallback: () => [],
         drawingMode: drawingModes.DRAW,
         drawingColor: '#000',
-        drawingWeight: 10
+        drawingWeight: 10,
+        enableManualDrawing: true,
+        canvasWidth: 700,
+        canvasHeight: 500,
     };
 
+    isEmptyCanvas: boolean = true;
+
     sketchSetup(p5: p5Types, canvasParentRef: Element) {
-        p5.createCanvas(700, 500).parent(canvasParentRef);
+        p5.createCanvas(this.props.canvasWidth, this.props.canvasHeight).parent(canvasParentRef);
         p5.noStroke();
         p5.smooth();
         p5.background(this.props.backgroundColor);
@@ -67,17 +77,25 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
     }
 
     sketchDraw(p5: p5Types) {
-        for(let drawEvent of this.props.gatherDrawCommandCallback()) {
-            switch(drawEvent.type) {
-                case eventTypes.POINT:
-                    this.drawPoint(p5, drawEvent.x, drawEvent.y, drawEvent.color, drawEvent.weight);
-                    break;
-                case eventTypes.LINE:
-                    this.drawPoint(p5, drawEvent.x, drawEvent.y, drawEvent.color, drawEvent.weight);
-                    break;
-                case eventTypes.FILL:
-                    this.fillSimilarColors(p5, drawEvent.x, drawEvent.y, drawEvent.color);
-                    break;
+        if(this.props.gatherDrawCommandCallback) {
+            let drawEvents = this.props.gatherDrawCommandCallback();
+            if(drawEvents && drawEvents.length) {
+                for(let drawEvent of drawEvents) {
+                    switch(drawEvent.type) {
+                        case eventTypes.POINT:
+                            this.drawPoint(p5, drawEvent.x, drawEvent.y, drawEvent.color, drawEvent.weight);
+                            break;
+                        case eventTypes.LINE:
+                            this.drawLine(p5, drawEvent.px||0, drawEvent.py||0, drawEvent.x, drawEvent.y, drawEvent.color, drawEvent.weight);
+                            break;
+                        case eventTypes.FILL:
+                            this.fillSimilarColors(p5, drawEvent.x, drawEvent.y, drawEvent.color);
+                            break;
+                        case eventTypes.CLEAR:
+                            this.clearCanvas(p5);
+                            break;
+                    }
+                }
             }
         }
 
@@ -88,8 +106,21 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
 
     sketchMousePressed(p5: p5Types) {
         let {mouseX, mouseY} = p5;
+        if(!this.props.enableManualDrawing || mouseX < 0 || mouseY < 0 || mouseX >= p5.width || mouseY >= p5.height) {
+            return;
+        }
 
         if(this.props.drawingMode === drawingModes.FILL) {
+            this.props.onCanvasChanged({
+                type: eventTypes.FILL,
+                mode: this.props.drawingMode,
+                color: this.props.drawingColor,
+                weight: this.props.drawingWeight,
+                x: mouseX,
+                y: mouseY,
+                px: undefined,
+                py: undefined
+            });
             this.fillSimilarColors(p5, mouseX, mouseY, this.props.drawingColor);
             return;
         }
@@ -109,14 +140,8 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
         });
     }
 
-    drawPoint(p5: p5Types, x: number, y: number, color: string, weight: number) {
-        p5.strokeWeight(0);
-        p5.fill(color);
-        p5.circle(x, y, weight);
-    }
-
     sketchMouseDragged(p5: p5Types) {
-        if(this.props.drawingMode === drawingModes.FILL) {
+        if(!this.props.enableManualDrawing || this.props.drawingMode === drawingModes.FILL) {
             return;
         }
 
@@ -136,27 +161,15 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
         });
     }
 
-    drawLine(p5: p5Types, px: number, py: number, x: number, y: number, color: string, weight: number) {
-        p5.stroke(color);
-        p5.strokeWeight(this.props.drawingWeight);
-        p5.line(px,py,x,y);
-    }
-
     fillSimilarColors(p5: p5Types, x: number, y:number, color: string): void {
         if(x < 0 || y < 0 || x >= p5.width || y >= p5.height) {
             return;
         }
 
-        this.props.onCanvasChanged({
-            type: eventTypes.FILL,
-            mode: this.props.drawingMode,
-            color: color,
-            weight: this.props.drawingWeight,
-            x: x,
-            y: y,
-            px: undefined,
-            py: undefined
-        });
+        if(this.isEmptyCanvas) {
+            p5.background(color);
+            return;
+        }
 
         const pixelDensity = p5.pixelDensity();
         const width = p5.width * pixelDensity,
@@ -186,7 +199,7 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
         ];
 
         let fillCounter = 0;
-        let fillLimit = 5000000;
+        const fillLimit = 10000000; // 10.000.000 // 1.397.601
         while(checkPixelStack.length && fillCounter < fillLimit) {
             // get one pixel from the stack and remove it
             let pixel = checkPixelStack.pop();
@@ -219,25 +232,45 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
             if(pixel.y > 0) {
                 checkPixelStack.push({x: pixel.x   , y: (pixel.y-1)});
             }
-            if(pixel.y < width-1) {
+            if(pixel.y < height-1) {
                 checkPixelStack.push({x: pixel.x   , y: (pixel.y+1)});
             }
             if(pixel.x > 0) {
                 checkPixelStack.push({x: (pixel.x-1)   , y: pixel.y});
             }
-            if(pixel.x < height-1) {
+            if(pixel.x < width-1) {
                 checkPixelStack.push({x: (pixel.x+1)   , y: pixel.y});
             }
         }
 
         console.log(`filled ${fillCounter} pixels`);
         p5.updatePixels(0,0, width, height);
+        this.isEmptyCanvas = false;
+    }
+
+    drawLine(p5: p5Types, px: number, py: number, x: number, y: number, color: string, weight: number): void {
+        p5.stroke(color);
+        p5.strokeWeight(weight);
+        p5.line(px,py,x,y);
+        this.isEmptyCanvas = false;
+    }
+
+    drawPoint(p5: p5Types, x: number, y: number, color: string, weight: number): void {
+        p5.strokeWeight(0);
+        p5.fill(color);
+        p5.circle(x, y, weight);
+        this.isEmptyCanvas = false;
+    }
+
+    clearCanvas(p5: p5Types): void {
+        p5.background(this.props.backgroundColor);
+        this.isEmptyCanvas = true;
     }
 
     render(): ReactNode {
         return (
             <Sketch setup={this.sketchSetup.bind(this)}
-                    draw={this.props.drawFunction}
+                    draw={this.sketchDraw.bind(this)}
                     mouseClicked={this.sketchMousePressed.bind(this)}
                     mouseDragged={this.sketchMouseDragged.bind(this)}/>
         );

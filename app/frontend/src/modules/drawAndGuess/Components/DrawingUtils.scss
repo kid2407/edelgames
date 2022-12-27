@@ -1,0 +1,26 @@
+.drawing-utils {
+  display: flex;
+  flex-wrap: wrap;
+
+  .util-mode {
+
+  }
+
+  .util-drawing-weight {
+
+  }
+
+  .util-color {
+    display: flex;
+    gap: 0.2rem;
+
+    .color-badge {
+      border: 2px solid black;
+      border-radius: 100%;
+      width: 2rem;
+      height: 2rem;
+      display: inline-block;
+      cursor: pointer;
+    }
+  }
+}

@@ -1,0 +1,28 @@
+.chat-box {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  padding: 0 0.5rem;
+
+  .chat-box-history {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    overflow: hidden;
+
+    .chat-box-message {
+      padding: 0.25rem 0;
+
+      &:nth-of-type(2n) {
+        background-color: rgba(#ffffff, 0.1);
+      }
+    }
+
+  }
+
+  .chat-box-input {
+    flex: 0 0 auto;
+  }
+
+}
