@@ -5,10 +5,11 @@ import drawAndGuess from "./DrawAndGuess";
 import {clearTimeout} from "timers";
 
 enum gameStates {
+    CONFIGURATION = 'configuration',
     WORD_SELECTION = 'selecting',
     DRAWING = 'drawing',
-    FINISHED = 'finished',
-    PREPARING_TURN = 'PREPARING_TURN'
+    PREPARING_TURN = 'preparing_turn',
+    CLOSING = 'closing'
 }
 
 
@@ -18,7 +19,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     roomApi: ModuleRoomApi = null;
     activePlayerIndex: number = 0;
     activePlayer: User = undefined; //
-    activeGameState: gameStates = gameStates.WORD_SELECTION; // what the server is currently doing
+    activeGameState: gameStates = gameStates.CONFIGURATION; // what the server is currently doing
     round: number = 0;
     scoreboard: {[key: string]: number} = {};
 
@@ -27,7 +28,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     msUntilDrawingTimeout: number =             1000 * 60; // 60 sec -> the time for the players to draw and guess
     msUntilNextWordSelectionTimeout: number =   1000 * 15; // 15 sec -> the time for the players to see the solution
     maxHintsThreshold: number = 0.75; // the maximum percentage of hints, that will be given
-    roundsToPlay: 10;
+    roundsToPlay: number = 10;
 
     // dynamic variables for active use -> do not change default value
     msToNextHint = 0;
@@ -40,19 +41,23 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     availableWords: string[] = ['you should', 'not see', 'this list'];
     playersWithCorrectGuess: {playerId: string, timing: number}[] = [];
 
-
     onGameInitialize(roomApi: ModuleRoomApi): void {
         this.roomApi = roomApi;
         this.roomApi.addEventHandler('activeCanvasChanged', this.onActiveCanvasChanged.bind(this));
         this.roomApi.addEventHandler('activeWordChosen', this.onActiveWordChosen.bind(this));
         this.roomApi.addEventHandler('attemptGuess', this.onAttemptGuess.bind(this));
+        this.roomApi.addEventHandler('submitConfigAndStart', this.onSubmitConfigAndStart.bind(this));
         this.roomApi.addUserLeaveHandler(this.onUserLeaveHandler.bind(this));
-
-        this.updateActivePlayer();
     }
 
     updateActivePlayer(stepToNextPlayer: boolean = false): void {
         let roomMembers = this.roomApi.getRoomMembers();
+        if(roomMembers.length === 0) {
+            // no one left
+            this.setGameState(gameStates.CLOSING);
+            this.roomApi.cancelGame();
+            return;
+        }
 
         if(stepToNextPlayer) {
             this.activePlayerIndex++;
@@ -63,8 +68,8 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             this.round++;
 
             if(this.round > this.roundsToPlay) {
-                // todo finish the game instead of continuing the next round
-                this.activeGameState = gameStates.FINISHED;
+                this.setGameState(gameStates.CONFIGURATION);
+                return;
             }
         }
 
@@ -72,7 +77,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         this.activePlayer = roomMembers[this.activePlayerIndex];
 
         if(previousActivePlayer !== this.activePlayer) {
-            this.activeGameState = gameStates.WORD_SELECTION;
+            this.setGameState(gameStates.WORD_SELECTION);
 
             if(this.hintsTimer) {
                 clearTimeout(this.hintsTimer);
@@ -167,6 +172,10 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     }
 
     onActiveWordChosen(eventData: { [key: string]: any }): void {
+        if(this.activeGameState === gameStates.CLOSING) {
+            return; // dont bother doing anything now
+        }
+
         if( this.activeGameState === gameStates.WORD_SELECTION &&
             this.activePlayer && this.activePlayer.getId() === eventData.senderId)
         {
@@ -175,7 +184,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                 // success
                 this.activeWord = selectedWord;
                 let maskData = this.createWordMask(true);
-                this.activeGameState = gameStates.DRAWING;
+                this.setGameState(gameStates.DRAWING);
 
                 this.drawingTimerTimestamp = Date.now();
 
@@ -212,7 +221,11 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
     // when the drawing time is up
     onDrawingTimeout(): void {
-        this.activeGameState = gameStates.PREPARING_TURN;
+        if(this.activeGameState === gameStates.CLOSING) {
+            return; // dont bother doing anything now
+        }
+
+        this.setGameState(gameStates.PREPARING_TURN);
 
         let drawnMs = Date.now() - this.drawingTimerTimestamp;
         let drawnPct = drawnMs / this.msUntilDrawingTimeout;
@@ -250,7 +263,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             clearTimeout(this.hintsTimer);
         }
 
-        this.activeGameState = gameStates.WORD_SELECTION;
+        this.setGameState(gameStates.WORD_SELECTION);
         this.activeWord = '';
         this.playersWithCorrectGuess = [];
         setTimeout(this.updateActivePlayer.bind(this, true), this.msUntilNextWordSelectionTimeout);
@@ -258,7 +271,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
     onHintInterval(): void {
         let maskData = this.createWordMask(false, 1);
-        if(this.activeGameState === gameStates.DRAWING && maskData.masked/maskData.total <= this.maxHintsThreshold) {
+        if(this.activeGameState === gameStates.DRAWING && maskData.masked/maskData.total >= this.maxHintsThreshold) {
             this.roomApi.sendRoomMessage('wordToGuessChanged', {
                 mask: this.activeWordMask
             });
@@ -295,8 +308,8 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                 });
                 this.roomApi.sendRoomMessage('newGuessChatMessage', {
                     sender: senderId,
-                    text: ' guessed the word!',
-                    color: '#19bb19',
+                    text: 'hat das Wort erraten!',
+                    color: 'success',
                     timestamp: now
                 });
 
@@ -317,5 +330,32 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                 });
             }
         }
+    }
+
+    setGameState(state: gameStates): void {
+        this.activeGameState = state;
+        this.roomApi.sendRoomMessage('gameStateChanged', {
+            gameState: state
+        });
+    }
+
+    onSubmitConfigAndStart(eventData: {[key: string]: any}): void {
+        let {configuration, senderId} = eventData;
+
+        if( this.activeGameState !== gameStates.CONFIGURATION ||
+            eventData.senderId !== this.roomApi.getRoomMaster().getId())
+        {
+            return;
+        }
+
+        const clamp = (min: number, val: number, max: number): number => { return Math.min(max, Math.max(min, val)); };
+
+        this.msUntilDrawingTimeout =        clamp(15000 , configuration.drawingTime * 1000  , 300000);
+        this.msUntilWordSelectionTimeout =  clamp(5000  , configuration.choosingTime * 1000 , 60000);
+        this.maxHintsThreshold =            clamp(0     , configuration.maxHints / 100      , 1);
+        this.roundsToPlay =                 clamp(1     , configuration.choosingTime * 1    , 10);
+
+        this.setGameState(gameStates.PREPARING_TURN);
+        this.updateActivePlayer();
     }
 }

@@ -103,4 +103,8 @@ export default class ModuleRoomApi {
     public getRoomMembers(): User[] {
         return this.room.getRoomMembers();
     }
+
+    public getRoomMaster(): User {
+        return this.room.getRoomMaster();
+    }
 }

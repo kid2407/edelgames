@@ -1,0 +1,42 @@
+.game-state-box {
+  background: $backgroundLight;
+  height: 5rem;
+  width: 100%;
+  padding: 0.5rem;
+
+
+  .game-state {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+
+    .word-mask {
+      .masked-letter,
+      .hint-letter{
+        height: 1.5rem;
+        width: 1.5rem;
+        margin-right: 0.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 2px solid $text-color;
+      }
+
+      .masked-letter {
+
+      }
+      .hint-letter {
+
+      }
+    }
+  }
+
+  .game-timer {
+    .countdown {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+  }
+}

@@ -1,8 +1,7 @@
 .chat-box {
   display: flex;
   flex-direction: column;
-  height: 500px;
-  padding: 0 0.5rem;
+  height: calc(500px - 5rem);
 
   .chat-box-history {
     flex: 1 1 auto;
@@ -11,11 +10,27 @@
     justify-content: flex-start;
     overflow: hidden;
 
-    .chat-box-message {
-      padding: 0.25rem 0;
+    mask-mode: alpha;
+    mask-image: linear-gradient(transparent, black);
 
-      &:nth-of-type(2n) {
+    .chat-box-message {
+      padding: 0.25rem;
+      color: inherit;
+
+      &:nth-of-type(2n+1) {
         background-color: rgba(#ffffff, 0.1);
+      }
+
+      &.message-coloring- {
+        &solution {
+          color: $primary;
+        }
+        &choosing {
+          color: $primary;
+        }
+        &success {
+          color: $success;
+        }
       }
     }
 
@@ -23,6 +38,11 @@
 
   .chat-box-input {
     flex: 0 0 auto;
+
+    input {
+      width: 100%;
+      padding: 0.25rem 0.5rem;
+    }
   }
 
 }

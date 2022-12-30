@@ -5,12 +5,13 @@ export type DAGChatMessage = {
     sender: string,
     text: string,
     timestamp: number,
-    color: string|null
+    coloring: string|null
 }
 
 interface IProps {
     onSendCallback: (message: string) => void,
-    messageHistory: DAGChatMessage[];
+    messageHistory: DAGChatMessage[],
+    isGuessing: boolean
 }
 
 export default class ChatBox extends Component<IProps,{}> {
@@ -35,15 +36,17 @@ export default class ChatBox extends Component<IProps,{}> {
     }
 
     renderChatMessage(message: DAGChatMessage): JSX.Element {
-        let sender = (message.sender === 'system') ? '' : (this.playerNames[message.sender] || '???') + ':';
+        let sender = (message.sender === 'system') ? null : (this.playerNames[message.sender] || '???');
+
+        let classNames = "chat-box-message";
+        if(message.coloring) {
+            classNames += " message-coloring-"+message.coloring;
+        }
 
         return (
-            <div className={"chat-box-message"}
-                key={message.timestamp} style={{
-                color: message.color ?? 'inherit'
-            }}>
-                <span>{sender}&nbsp;</span>
-                <span>{message.text}</span>
+            <div className={classNames}
+                key={message.timestamp}>
+                <span>{sender ? `${sender}: ` : ''}{message.text}</span>
             </div>
         );
     }
@@ -55,7 +58,11 @@ export default class ChatBox extends Component<IProps,{}> {
                     {this.props.messageHistory.map(this.renderChatMessage.bind(this))}
                 </div>
                 <div className={"chat-box-input"}>
-                    <input ref={this.inputField} type={"text"} placeholder={'...'} onKeyDown={this.onKeyPressed.bind(this)}/>
+                    <input ref={this.inputField}
+                           type={"text"}
+                           placeholder={'Dein Lösungswort...'}
+                           disabled={!this.props.isGuessing}
+                           onKeyDown={this.onKeyPressed.bind(this)}/>
                 </div>
             </div>
         );
