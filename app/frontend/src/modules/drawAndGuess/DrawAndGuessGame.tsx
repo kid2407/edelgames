@@ -16,6 +16,7 @@ import User from "../../framework/util/User";
 import ChatBox, {DAGChatMessage} from "./Components/ChatBox";
 import GameStateBox from "./Components/GameStateBox";
 import GameConfig, {GameConfigObject} from "./Components/GameConfig";
+import WordSelection from "./Components/WordSelection";
 
 interface IState {
     currentMode: string,
@@ -26,8 +27,10 @@ interface IState {
     totalScoreKey: number,
     currentMask: string|null,
     currentWord: string|null,
+    currentWordOptions: string[],
     timerUntil: number|null,
-    configurationVisible: boolean
+    currentGameState: string,
+    defaultConfig: {[key: string]: any}|null,
 }
 
 export default class DrawAndGuessGame extends React.Component<{}, IState> implements ModuleGameInterface {
@@ -46,6 +49,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
         wordToDrawChanged: this.onWordToDrawChanged.bind(this),
         drawingSolution: this.onDrawingSolution.bind(this),
         gameStateChanged: this.onGameStateChanged.bind(this),
+        configurationChanged: this.onRemoteConfigChanged.bind(this),
     }
 
     state = {
@@ -57,8 +61,10 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
         totalScoreKey: 0,
         currentMask: null,
         currentWord: null,
+        currentWordOptions: [],
         timerUntil: null,
-        configurationVisible: true
+        currentGameState: 'configuration',
+        defaultConfig: null
     };
 
     constructor(props: any) {
@@ -76,6 +82,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
         this.gameApi.addEventHandler('wordToDrawChanged', this.eventHandlers.wordToDrawChanged);
         this.gameApi.addEventHandler('drawingSolution', this.eventHandlers.drawingSolution);
         this.gameApi.addEventHandler('gameStateChanged', this.eventHandlers.gameStateChanged);
+        this.gameApi.addEventHandler('configurationChanged', this.eventHandlers.configurationChanged);
     }
 
     componentWillUnmount() {
@@ -87,16 +94,25 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
         this.gameApi.removeEventHandler('wordToDrawChanged', this.eventHandlers.wordToDrawChanged);
         this.gameApi.removeEventHandler('drawingSolution', this.eventHandlers.drawingSolution);
         this.gameApi.removeEventHandler('gameStateChanged', this.eventHandlers.gameStateChanged);
+        this.gameApi.removeEventHandler('configurationChanged', this.eventHandlers.configurationChanged);
     }
 
     /* ====================== */
     /* Remote Event Listeners */
     /* ====================== */
 
+    onRemoteConfigChanged(eventData: EventDataObject): void {
+        let {configuration} = eventData;
+        this.setState({
+            defaultConfig: configuration
+        });
+    }
+
     onGameStateChanged(eventData: EventDataObject): void {
         let {gameState} = eventData; // either the string configuration or the string running
+
         this.setState({
-            configurationVisible: gameState === 'configuration'
+            currentGameState: gameState
         });
     }
 
@@ -130,8 +146,9 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
 
     onWordSelectionOptions(eventData: EventDataObject): void {
         let {options} = eventData; // an array of three strings
-
-        // todo implement
+        this.setState({
+            currentWordOptions: options
+        });
     }
 
     onActivePlayerChanged(eventData: EventDataObject): void {
@@ -156,11 +173,12 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
             'choosing'
         );
 
+
         this.setState({
             activePlayerId: activePlayer,
             timerUntil: null,
             currentWord: null,
-            currentMask: null
+            currentMask: null,
         });
     }
 
@@ -194,8 +212,23 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
     /* Locale Event Listeners */
     /* ====================== */
 
-    onGameConfigChanged(config: GameConfigObject): void {
+    onWordSelection(word: string): void {
+        this.gameApi.sendMessageToServer('activeWordChosen', {
+            selection: word
+        });
+    }
+
+    onGameConfigSubmitted(config: GameConfigObject): void {
         this.gameApi.sendMessageToServer('submitConfigAndStart', {
+            configuration: config
+        });
+        this.setState({
+            defaultConfig: config
+        });
+    }
+
+    onGameConfigChanged(config: GameConfigObject): void {
+        this.gameApi.sendMessageToServer('configChangedPreview', {
             configuration: config
         });
     }
@@ -263,8 +296,48 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
         );
     }
 
+
+    renderDrawingBoardSpace(allowDrawing: boolean, isUserRoomMaster: boolean, isActivePlayer: boolean): JSX.Element {
+        let state = this.state.currentGameState;
+
+        if(state === 'selecting' && !isActivePlayer) {
+            state = 'waiting';
+        }
+
+        switch(state) {
+            case 'configuration':
+                return (
+                    <GameConfig
+                        onSubmit={this.onGameConfigSubmitted.bind(this)}
+                        onChange={this.onGameConfigChanged.bind(this)}
+                        allowChanges={isUserRoomMaster}
+                        defaultConfig={isUserRoomMaster ? null : this.state.defaultConfig}
+                    />
+                );
+            case 'selecting':
+                return (
+                    <WordSelection onSelect={this.onWordSelection.bind(this)}
+                                   options={this.state.currentWordOptions}
+                    />
+                );
+            default:
+                return (
+                    <DrawingCanvas
+                        drawingMode={this.state.currentMode}
+                        drawingColor={this.state.currentColor}
+                        drawingWeight={this.state.currentWeight}
+                        enableManualDrawing={allowDrawing}
+                        gatherDrawCommandCallback={this.onGetQueuedDrawCommands.bind(this)}
+                        onCanvasChanged={this.onCanvasChanged.bind(this)}
+                    />
+                );
+        }
+    }
+
     render(): ReactNode {
-        let allowDrawing = this.state.activePlayerId === ProfileManager.getId();
+        let isActivePlayer = this.state.activePlayerId === ProfileManager.getId();
+        let allowDrawing = isActivePlayer && this.state.currentGameState === 'drawing';
+        let isUserRoomMaster = ProfileManager.getId() === RoomManager.getRoomMaster()?.getId();
 
         return (
             <div id={"drawAndGuess"} key={"drawAndGuess"}>
@@ -274,22 +347,9 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
                     </div>
                 </div>
                 <div className={"drawing-board"}>
-                    {this.state.configurationVisible ?
-                        <GameConfig
-                            onSubmit={this.onGameConfigChanged.bind(this)}
-                            allowChanges={ProfileManager.getId() === RoomManager.getRoomMaster()?.getId()}
-                        />
-                        :
-                        <DrawingCanvas
-                            drawingMode={this.state.currentMode}
-                            drawingColor={this.state.currentColor}
-                            drawingWeight={this.state.currentWeight}
-                            enableManualDrawing={allowDrawing}
-                            gatherDrawCommandCallback={this.onGetQueuedDrawCommands.bind(this)}
-                            onCanvasChanged={this.onCanvasChanged.bind(this)}
-                        />
-                    }
-                    {(!allowDrawing || this.state.configurationVisible) ? null :
+                    {this.renderDrawingBoardSpace(allowDrawing, isUserRoomMaster, isActivePlayer)}
+
+                    {(!allowDrawing || this.state.currentGameState === 'configuration') ? null :
                         <DrawingUtils
                             currentMode={this.state.currentMode}
                             currentWeight={this.state.currentWeight}
@@ -302,7 +362,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
                 </div>
 
                 <div className={"guessing-chat"} style={{
-                    opacity: this.state.configurationVisible ? 0.1 : 1
+                    opacity: this.state.currentGameState === 'configuration' ? 0.1 : 1
                 }}>
                     <GameStateBox
                         countdownUntil={this.state.timerUntil}
@@ -312,7 +372,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
                     <ChatBox
                         onSendCallback={this.onMessageSend.bind(this)}
                         messageHistory={this.messageHistory}
-                        isGuessing={!allowDrawing}
+                        isGuessing={!allowDrawing && this.state.currentGameState === 'drawing'}
                     />
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import {Component} from "react";
-import RangeSlider from "../../../framework/components/Inputs/RangeSlider";
+import RangeSlider, {renderPreviewMethods} from "../../../framework/components/Inputs/RangeSlider";
 
 
 export type GameConfigObject = {
@@ -10,8 +10,10 @@ export type GameConfigObject = {
 }
 
 interface IProps {
-    onSubmit: (configuration: GameConfigObject) => void,
-    allowChanges: boolean
+    onSubmit: ((configuration: GameConfigObject) => void),
+    onChange: ((configuration: GameConfigObject) => void),
+    allowChanges: boolean,
+    defaultConfig: null|Partial<GameConfigObject>
 }
 
 interface IState {
@@ -30,55 +32,64 @@ export default class GameConfig extends Component<IProps, IState> {
         rounds: 5,
     }
 
+    componentDidMount() {
+        if(this.props.defaultConfig) {
+            this.setState(this.props.defaultConfig as IState);
+        }
+    }
+
+    onAfterStateChanged(): void {
+        this.props.onChange(this.state);
+    }
+
     render() {
         return (
             <div className={"game-config"}>
 
-                <div className={"config-box"}>
-                    <div className={"config-name"}>Zeichen-Zeit:</div>
-                    <div className={"config-field"}>
-                        <RangeSlider defaultValue={this.state.drawingTime}
-                                     min={15} max={300}
-                                     onChange={(value) => this.setState({drawingTime: value})}
-                                     renderPreview={(value) => value+'s'}
-                        />
-                    </div>
-                </div>
+                {this.renderRangeSliderConfig('Zeichen-Zeit',
+                    this.props.defaultConfig?.drawingTime ?? this.state.drawingTime,
+                    15, 300,
+                    ((value: number) => this.setState({drawingTime: value}, this.onAfterStateChanged.bind(this))),
+                    renderPreviewMethods.seconds
+                )}
 
-                <div className={"config-box"}>
-                    <div className={"config-name"}>Wort-Auswahl-Zeit:</div>
-                    <div className={"config-field"}>
-                        <RangeSlider defaultValue={this.state.choosingTime}
-                                     min={5} max={60}
-                                     onChange={(value) => this.setState({choosingTime: value})}
-                                     renderPreview={(value) => value+'s'}
-                        />
-                    </div>
-                </div>
+                {this.renderRangeSliderConfig('Wort-Auswahl-Zeit',
+                    this.props.defaultConfig?.choosingTime ?? this.state.choosingTime,
+                    5, 60,
+                    ((value: number) => this.setState({choosingTime: value}, this.onAfterStateChanged.bind(this))),
+                    renderPreviewMethods.seconds
+                )}
 
-                <div className={"config-box"}>
-                    <div className={"config-name"}>Maximale Hinweise (%):</div>
-                    <div className={"config-field"}>
-                        <RangeSlider defaultValue={this.state.maxHints}
-                                     min={0} max={100}
-                                     onChange={(value) => this.setState({maxHints: value})}
-                                     renderPreview={(value) => value+'%'}
-                        />
-                    </div>
-                </div>
+                {this.renderRangeSliderConfig('Maximale Hinweise (%)',
+                    this.props.defaultConfig?.maxHints ?? this.state.maxHints,
+                    0, 100,
+                    ((value: number) => this.setState({maxHints: value}, this.onAfterStateChanged.bind(this))),
+                    renderPreviewMethods.percent
+                )}
 
-                <div className={"config-box"}>
-                    <div className={"config-name"}>Anzahl Runden:</div>
-                    <div className={"config-field"}>
-                        <RangeSlider defaultValue={this.state.rounds}
-                                     min={1} max={10}
-                                     onChange={(value) => this.setState({rounds: value})} />
-                    </div>
-                </div>
-
+                {this.renderRangeSliderConfig('Anzahl Runden',
+                    this.props.defaultConfig?.rounds ?? this.state.rounds,
+                    1, 10,
+                    (value: number) => this.setState({rounds: value}, this.onAfterStateChanged.bind(this))
+                )}
 
                 <div>
                     <button onClick={() => this.props.onSubmit(this.state)}>Start!</button>
+                </div>
+            </div>
+        );
+    }
+
+    renderRangeSliderConfig(title: string, defaultValue: number, min: number, max: number, onChange: (value:number) => void, renderPreview: undefined|((value: number) => string|number|JSX.Element) = undefined): JSX.Element {
+        return (
+            <div className={"config-box"}>
+                <div className={"config-name"}>{title}:</div>
+                <div className={"config-field"}>
+                    <RangeSlider defaultValue={defaultValue}
+                                 min={min} max={max}
+                                 onChange={onChange}
+                                 disabled={!this.props.allowChanges}
+                                 renderPreview={renderPreview}/>
                 </div>
             </div>
         );

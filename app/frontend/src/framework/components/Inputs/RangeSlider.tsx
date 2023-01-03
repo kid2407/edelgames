@@ -14,6 +14,12 @@ interface IState {
     value: number
 }
 
+// these are just frequently used examples
+export const renderPreviewMethods = {
+    percent: ((value: number) => value+'%'),
+    seconds: ((value: number) => value+'s'),
+}
+
 export default class RangeSlider extends Component<IProps, IState> {
 
     static defaultProps = {
@@ -28,16 +34,11 @@ export default class RangeSlider extends Component<IProps, IState> {
         value: 0
     }
 
-    constructor(props: IProps) {
-        super(props);
-    }
-
     onChangeSlider(value: number): void {
         this.setState({
             value: value
         });
-
-        //this.props.onChange(value);
+        this.props.onChange(value);
     }
 
     componentDidMount() {
@@ -48,7 +49,8 @@ export default class RangeSlider extends Component<IProps, IState> {
 
 
     render() {
-        console.log('render with state', this.state);
+        let value = this.state?.value ?? this.props.defaultValue;
+            value = this.props.disabled ? this.props.defaultValue : value;
 
         return(
             <div className={"range-slider"}>
@@ -58,14 +60,14 @@ export default class RangeSlider extends Component<IProps, IState> {
                     max={this.props.max}
                     step={this.props.step}
                     disabled={this.props.disabled}
-                    value={this.state?.value ?? this.props.defaultValue}
+                    value={value}
                     onChange={(event) => this.onChangeSlider(parseInt(event.target.value))}
                 />
 
                 <span className={"output-preview"}>
                     {this.props.renderPreview ?
-                        this.props.renderPreview(this.state.value) :
-                        <span>{this.state.value}</span>
+                        this.props.renderPreview(value) :
+                        <span>{value}</span>
                     }
                 </span>
             </div>

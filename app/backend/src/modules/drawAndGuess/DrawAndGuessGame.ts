@@ -26,7 +26,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     // configuration
     msUntilWordSelectionTimeout: number =       1000 * 10; // 10 sec -> the time for the active player to choose a word
     msUntilDrawingTimeout: number =             1000 * 60; // 60 sec -> the time for the players to draw and guess
-    msUntilNextWordSelectionTimeout: number =   1000 * 15; // 15 sec -> the time for the players to see the solution
+    msUntilNextWordSelectionTimeout: number =   1000 *  5; // 5 sec -> the time for the players to see the solution
     maxHintsThreshold: number = 0.75; // the maximum percentage of hints, that will be given
     roundsToPlay: number = 10;
 
@@ -47,6 +47,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         this.roomApi.addEventHandler('activeWordChosen', this.onActiveWordChosen.bind(this));
         this.roomApi.addEventHandler('attemptGuess', this.onAttemptGuess.bind(this));
         this.roomApi.addEventHandler('submitConfigAndStart', this.onSubmitConfigAndStart.bind(this));
+        this.roomApi.addEventHandler('configChangedPreview', this.onConfigChangedPreview.bind(this));
         this.roomApi.addUserLeaveHandler(this.onUserLeaveHandler.bind(this));
     }
 
@@ -71,14 +72,15 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                 this.setGameState(gameStates.CONFIGURATION);
                 return;
             }
+            else {
+                this.sendRoomChatMessage(null, 'Runde '+(this.round+1), 'next-round');
+            }
         }
 
         let previousActivePlayer = this.activePlayer;
         this.activePlayer = roomMembers[this.activePlayerIndex];
 
         if(previousActivePlayer !== this.activePlayer) {
-            this.setGameState(gameStates.WORD_SELECTION);
-
             if(this.hintsTimer) {
                 clearTimeout(this.hintsTimer);
             }
@@ -92,6 +94,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             this.roomApi.sendPlayerMessage(this.activePlayer.getId(), 'wordSelectionOptions', {
                 options: this.availableWords
             })
+            this.setGameState(gameStates.WORD_SELECTION);
 
             // start the timer for the word selection
             if(this.wordSelectionTimer) {
@@ -206,7 +209,9 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
                 // set timeout for showing hints to the players
                 if(maskData.total && this.maxHintsThreshold) {
-                    this.msToNextHint = (this.msUntilDrawingTimeout - 10000) / (maskData.total * this.maxHintsThreshold);
+                    let timePerLetter = this.msUntilDrawingTimeout / maskData.total;
+                    this.msToNextHint = timePerLetter / this.maxHintsThreshold;
+
                     if(this.hintsTimer) {
                         clearTimeout(this.hintsTimer);
                     }
@@ -263,7 +268,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             clearTimeout(this.hintsTimer);
         }
 
-        this.setGameState(gameStates.WORD_SELECTION);
+        this.setGameState(gameStates.PREPARING_TURN);
         this.activeWord = '';
         this.playersWithCorrectGuess = [];
         setTimeout(this.updateActivePlayer.bind(this, true), this.msUntilNextWordSelectionTimeout);
@@ -271,7 +276,8 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
     onHintInterval(): void {
         let maskData = this.createWordMask(false, 1);
-        if(this.activeGameState === gameStates.DRAWING && maskData.masked/maskData.total >= this.maxHintsThreshold) {
+
+        if(this.activeGameState === gameStates.DRAWING && maskData.masked/maskData.total > (1-this.maxHintsThreshold)) {
             this.roomApi.sendRoomMessage('wordToGuessChanged', {
                 mask: this.activeWordMask
             });
@@ -299,19 +305,14 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             !this.playersWithCorrectGuess.find(el => el.playerId === senderId))
         {
             let roomMembers = this.roomApi.getRoomMembers();
-            let now = Date.now();
 
             if(guess === this.activeWord) {
+                let now = Date.now();
                 this.playersWithCorrectGuess.push({
                     playerId: senderId,
                     timing: (now - this.drawingTimerTimestamp)
                 });
-                this.roomApi.sendRoomMessage('newGuessChatMessage', {
-                    sender: senderId,
-                    text: 'hat das Wort erraten!',
-                    color: 'success',
-                    timestamp: now
-                });
+                this.sendRoomChatMessage(senderId, 'hat das Wort erraten', 'success', now)
 
                 if(this.playersWithCorrectGuess.length >= roomMembers.length-1) {
                     // all players guessed correctly! end the drawing phase!
@@ -322,14 +323,18 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                 }
             }
             else {
-                this.roomApi.sendRoomMessage('newGuessChatMessage', {
-                    sender: senderId,
-                    text: guess,
-                    color: null,
-                    timestamp: now
-                });
+                this.sendRoomChatMessage(senderId, guess, null);
             }
         }
+    }
+
+    sendRoomChatMessage(senderId: string|null, message: string, coloring: string|null = null, timestamp: number|null = null): void {
+        this.roomApi.sendRoomMessage('newGuessChatMessage', {
+            sender: senderId,
+            text: message,
+            color: coloring,
+            timestamp: timestamp ?? Date.now()
+        });
     }
 
     setGameState(state: gameStates): void {
@@ -339,23 +344,56 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         });
     }
 
-    onSubmitConfigAndStart(eventData: {[key: string]: any}): void {
+    onConfigChangedPreview(eventData: {[key: string]: any}): void {
         let {configuration, senderId} = eventData;
 
         if( this.activeGameState !== gameStates.CONFIGURATION ||
-            eventData.senderId !== this.roomApi.getRoomMaster().getId())
+            senderId !== this.roomApi.getRoomMaster().getId())
         {
             return;
         }
 
-        const clamp = (min: number, val: number, max: number): number => { return Math.min(max, Math.max(min, val)); };
+        // configuration has changed -> notify players
+        this.roomApi.sendRoomMessage('configurationChanged', {
+            configuration: configuration
+        });
+    }
 
-        this.msUntilDrawingTimeout =        clamp(15000 , configuration.drawingTime * 1000  , 300000);
-        this.msUntilWordSelectionTimeout =  clamp(5000  , configuration.choosingTime * 1000 , 60000);
-        this.maxHintsThreshold =            clamp(0     , configuration.maxHints / 100      , 1);
-        this.roundsToPlay =                 clamp(1     , configuration.choosingTime * 1    , 10);
+    onSubmitConfigAndStart(eventData: {[key: string]: any}): void {
+        let {configuration, senderId} = eventData;
 
+        if( this.activeGameState !== gameStates.CONFIGURATION ||
+            senderId !== this.roomApi.getRoomMaster().getId())
+        {
+            console.log(this.activeGameState);
+            return;
+        }
+
+        this.onConfigChangedPreview(eventData);
+
+        // fix possible unallowed settings
+        configuration = this.limitConfigurations(configuration);
+
+        // save configuration
+        this.msUntilDrawingTimeout =        configuration.drawingTime;
+        this.msUntilWordSelectionTimeout =  configuration.choosingTime;
+        this.maxHintsThreshold =            configuration.maxHints;
+        this.roundsToPlay =                 configuration.rounds;
+
+        this.sendRoomChatMessage(null, 'Runde '+(this.round+1), 'next-round');
         this.setGameState(gameStates.PREPARING_TURN);
         this.updateActivePlayer();
+    }
+
+    private limitConfigurations(oldConfig: {[key:string]: any}): {[key:string]: any} {
+        const clamp = (min: number, val: number, max: number): number => { return Math.min(max, Math.max(min, val)); };
+
+        // fix possible unallowed settings
+        return {
+            drawingTime:  clamp(15000 , oldConfig.drawingTime * 1000  , 300000),
+            choosingTime: clamp(5000  , oldConfig.choosingTime * 1000 , 60000),
+            maxHints:     clamp(0     , oldConfig.maxHints / 100      , 1),
+            rounds:       clamp(1     , oldConfig.rounds    , 10),
+        };
     }
 }
