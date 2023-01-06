@@ -2,7 +2,7 @@ import ModuleInterface from "./ModuleInterface";
 import ModuleList from "../../modules/ModuleList";
 import Room from "../Room";
 import ModuleRoomApi from "./ModuleRoomApi";
-import debug from "../util/debug";
+import {systemLogger} from "../util/Logger";
 
 
 class ModuleRegistry {
@@ -19,7 +19,7 @@ class ModuleRegistry {
         let module = this.getModuleById(gameId);
 
         if (!module) {
-            debug(1, `Failed to start game with id ${gameId} for room ${room.getRoomId()}`);
+            systemLogger.warning( `Failed to start game with id ${gameId} for room ${room.getRoomId()}`);
             return;
         }
 

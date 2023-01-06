@@ -1,12 +1,10 @@
-import exampleChat from "./examplechat/ExampleChat";
-import stadtLandFluss from "./stadtlandfluss/StadtLandFluss";
+import exampleChat from "./exampleChat/ExampleChat";
 
 /*
  * Register your module here by simply adding it to the array:
  */
 const ModuleList = [
-    exampleChat,
-    stadtLandFluss
+    exampleChat
 ]
 
 export default ModuleList;

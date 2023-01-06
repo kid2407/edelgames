@@ -4,6 +4,7 @@ import ModuleGameApi from "../../framework/modules/ModuleGameApi";
 import exampleChat from "./ExampleChat";
 import User from "../../framework/util/User";
 import profileManager from "../../framework/util/ProfileManager";
+import {Logger} from "../../framework/util/Logger";
 
 type messageObject = {
     receivedAt: Date | null;
@@ -110,5 +111,7 @@ export default class ExampleChatGame extends React.Component<{}, IState> impleme
             </div>
         );
     }
+
+    logger: Logger = new Logger(exampleChat.getUniqueId());
 
 }

@@ -1,7 +1,6 @@
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
-import debug from "../../framework/util/debug";
 import {gameState} from "./SLFTypes";
 
 /**
@@ -55,7 +54,8 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
     }
 
     log(logLevel: number = 0, ...args: any[]) {
-        debug(logLevel, "[Stadt Land Fluss]", args)
+        //FIXME Replace with proper logger
+        console.log(logLevel, "[Stadt Land Fluss]", args)
     }
 
     /**

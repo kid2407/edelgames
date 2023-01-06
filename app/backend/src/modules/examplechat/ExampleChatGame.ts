@@ -1,11 +1,11 @@
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
-import debug from "../../framework/util/debug";
+import ModuleLogger from "../../framework/modules/ModuleLogger";
 
 /*
  * The actual game instance, that controls and manages the game
  */
-export default class ExampleChatGame implements ModuleGameInterface {
+export default class ExampleChatGame extends ModuleLogger implements ModuleGameInterface {
 
     roomApi: ModuleRoomApi = null;
 
@@ -15,7 +15,7 @@ export default class ExampleChatGame implements ModuleGameInterface {
     }
 
     onUserMessageReceived(eventData: { [key: string]: any }) {
-        debug(0, `User ID ${eventData.senderId} send in message: `, eventData.message);
+        this.logger.debug(`User ID ${eventData.senderId} send in message: `, eventData.message);
         this.roomApi.sendRoomMessage('serverMessageSend', {
             user: eventData.senderId,
             message: eventData.message

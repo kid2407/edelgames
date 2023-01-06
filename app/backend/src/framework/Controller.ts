@@ -1,7 +1,7 @@
 import {Server, Socket} from "socket.io";
 import User from "./User";
 import roomManager from "./RoomManager";
-import debug from "./util/debug";
+import {systemLogger} from "./util/Logger";
 
 export default class Controller {
 
@@ -22,7 +22,7 @@ export default class Controller {
 
         // debug output
         Controller.connectedUsers++;
-        debug(2, `user ${user.getId()} (socket ${socket.id}) connected! (${Controller.connectedUsers} users in total)`);
+        systemLogger.debug(`user ${user.getId()} (socket ${socket.id}) connected! (${Controller.connectedUsers} users in total)`);
 
 
         // switch user into lobby
@@ -31,7 +31,7 @@ export default class Controller {
 
     onDisconnect(socket: Socket, user: User): void {
         Controller.connectedUsers--;
-        debug(2, `user ${user.getId()} (socket ${socket.id}) disconnected! (${Controller.connectedUsers} users remaining)`);
+        systemLogger.debug(`user ${user.getId()} (socket ${socket.id}) disconnected! (${Controller.connectedUsers} users remaining)`);
         user.destroyUser();
     }
 }

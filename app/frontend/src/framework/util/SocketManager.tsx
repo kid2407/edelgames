@@ -1,6 +1,6 @@
 import {io, Socket} from "socket.io-client";
-import debug from "./debug";
 import eventManager, {ListenerFunction} from "./EventManager";
+import {clientLogger} from "./Logger";
 
 
 // helper constants don`t need a type, as it is recognized by the value
@@ -16,7 +16,7 @@ class SocketManager {
     constructor() {
         const PORT = process.env.REACT_APP_API_HTTP_PORT || 5000;
         const DOMAIN = process.env.REACT_APP_DOMAIN || "http://localhost";
-        debug('Starting connection using domain ', process.env, `Resultung in ${DOMAIN}:${PORT}`);
+        clientLogger.debug('Starting connection using domain ', process.env, `Resultung in ${DOMAIN}:${PORT}`);
 
         this.socket = io(DOMAIN + ":" + PORT);
         this.socket.on("connect", this.onConnectionStatusChanged.bind(this, true));
@@ -38,12 +38,12 @@ class SocketManager {
     }
 
     public sendEvent(eventName: string, data: object): void {
-        debug(`Sending event ${eventName} with `, data.hasOwnProperty("password") ? 'data' : data);
+        clientLogger.debug(`Sending event ${eventName} with `, data.hasOwnProperty("password") ? 'data' : data);
         this.socket.emit(eventName, data);
     }
 
     public subscribeEvent(eventName: string, listener: ListenerFunction): void {
-        debug(`Subscribing event ${eventName} with `, listener);
+        clientLogger.debug(`Subscribing event ${eventName} with `, listener);
         this.socket.on(eventName, listener);
     }
 }
