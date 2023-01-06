@@ -288,8 +288,11 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     }
 
     onUserLeaveHandler(eventData: EventDataObject): void {
+        let removedUser = eventData.removedUser as User;
+
+        this.sendRoomChatMessage(removedUser.getId(), 'left the game', 'error');
         // if this user was active, skip to the next one
-        if(eventData.removedUser === this.activePlayer) {
+        if(removedUser === this.activePlayer) {
             this.updateActivePlayer(false);
         }
     }
