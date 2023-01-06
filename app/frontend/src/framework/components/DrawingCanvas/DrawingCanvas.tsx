@@ -287,6 +287,7 @@ export const predefinedColors = [
     '#f50',
     '#ff0',
     '#0f0',
+    '#0e480e',
     '#0ff',
     '#00f',
     '#60f',

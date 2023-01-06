@@ -24,7 +24,6 @@ interface IState {
     currentWeight: number,
     activePlayerId: string|undefined,
     lastWord: string|undefined,
-    totalScoreKey: number,
     currentMask: string|null,
     currentWord: string|null,
     currentWordOptions: string[],
@@ -58,7 +57,6 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
         currentWeight: 10,
         activePlayerId: undefined,
         lastWord: undefined,
-        totalScoreKey: 0,
         currentMask: null,
         currentWord: null,
         currentWordOptions: [],
@@ -117,7 +115,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
     }
 
     onDrawingSolution(eventData: EventDataObject): void {
-        let {solution, scoreboard, totalScoreKey} = eventData; // a string with the last word and the entire scoreboard to this point
+        let {solution, scoreboard} = eventData; // a string with the last word and the entire scoreboard to this point
 
         this.scoreboard = scoreboard as {[key: string]: number};
 
@@ -130,7 +128,6 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
 
         this.setState({
             lastWord: solution,
-            totalScoreKey: totalScoreKey,
             currentWord: null,
             timerUntil: null,
             currentMask: null
@@ -286,12 +283,14 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
 
     renderPlayerListElement(user: User): JSX.Element {
         let isActivePlayer = this.state.activePlayerId === user.getId();
+        let points = this.scoreboard[user.getId()] || 0;
 
         return (
-            <div key={user.getId()}>
-                <span>{user.getUsername()}</span>
-                <span>{isActivePlayer ? '[drawing]' : ''}</span>
-                <span>{this.scoreboard[user.getId()] || 0}</span>
+            <div key={user.getId() + points}
+                 className={"player-list-element"}>
+                <span className={"player-name"}>{user.getUsername()}</span>
+                <span className={"player-state"}>{isActivePlayer ? '[d]' : ''}</span>
+                <span className={"player-points"}>{points}</span>
             </div>
         );
     }
@@ -342,7 +341,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
         return (
             <div id={"drawAndGuess"} key={"drawAndGuess"}>
                 <div className={"player-list"}>
-                    <div key={this.state.totalScoreKey}>
+                    <div>
                         {RoomManager.getRoomMembers().map(this.renderPlayerListElement.bind(this))}
                     </div>
                 </div>

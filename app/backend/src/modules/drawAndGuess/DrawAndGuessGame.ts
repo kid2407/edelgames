@@ -236,7 +236,6 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         let drawnPct = drawnMs / this.msUntilDrawingTimeout;
         let guessPct = this.playersWithCorrectGuess.length / (this.roomApi.getRoomMembers().length-1);
 
-        const optimalPoints = 100;
 
         let avgTiming = 0;
         for(let data of this.playersWithCorrectGuess) {
@@ -245,8 +244,8 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             // the earlier the guess, the more points, but the earlier the round ended, the fewer points
             //  -> a guesser wants to guess a hard word early
             let timingPct = timing / drawnMs;
-            let points = optimalPoints * (1 / timingPct);
-            this.scoreboard[playerId] += points;
+            let points = Math.floor(50 * (1 / timingPct));
+            this.scoreboard[playerId] = (this.scoreboard[playerId] || 0) + points;
             avgTiming += timing;
         }
 
@@ -255,13 +254,13 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
         avgTiming /= (this.playersWithCorrectGuess.length || 1);
         avgTiming /= drawnMs; // low value => easy drawing
-        let painterPoints = optimalPoints * drawnPct * (2 * guessPct) * avgTiming;
-        this.scoreboard[this.activePlayer.getId()] += painterPoints;
+        let painterPoints = 100 * drawnPct * (2 * guessPct) * avgTiming;
+
+        this.scoreboard[this.activePlayer.getId()] = (this.scoreboard[this.activePlayer.getId()] || 0) + Math.floor(painterPoints);
 
         this.roomApi.sendRoomMessage('drawingSolution', {
             solution: this.activeWord,
-            scoreboard: this.scoreboard,
-            totalScoreKey: Object.values(this.scoreboard).reduce((a,b) => a+b, 0) // the total sum of points for preventing unnecessary renders
+            scoreboard: this.scoreboard
         });
 
         if(this.hintsTimer) {
@@ -322,6 +321,9 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                     this.onDrawingTimeout();
                 }
             }
+            else if(guess === 'brogamer5000') {
+                this.sendRoomChatMessage(null, '100 points for Gryffindor!', 'success');
+            }
             else {
                 this.sendRoomChatMessage(senderId, guess, null);
             }
@@ -365,7 +367,6 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         if( this.activeGameState !== gameStates.CONFIGURATION ||
             senderId !== this.roomApi.getRoomMaster().getId())
         {
-            console.log(this.activeGameState);
             return;
         }
 
