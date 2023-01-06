@@ -2,11 +2,12 @@ import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
 import {gameState} from "./SLFTypes";
+import ModuleLogger from "../../framework/modules/ModuleLogger";
 
 /**
  * Main class for the Stadt Land Fluss game.
  */
-export default class StadtLandFlussGame implements ModuleGameInterface {
+export default class StadtLandFlussGame extends ModuleLogger implements ModuleGameInterface {
     roomApi: ModuleRoomApi | null = null;
     gameState: gameState | null = null
 
@@ -51,11 +52,6 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
         ready_users: [],
         points: {},
         point_overrides: {}
-    }
-
-    log(logLevel: number = 0, ...args: any[]) {
-        //FIXME Replace with proper logger
-        console.log(logLevel, "[Stadt Land Fluss]", args)
     }
 
     /**
@@ -111,7 +107,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             point_overrides: state.point_overrides
         }
 
-        this.log(0, "sending new game state:", toPublish)
+        this.logger.debug("sending new game state:", toPublish)
         if (user !== null) {
             this.roomApi.sendPlayerMessage(user, "updateGameState", toPublish)
         } else {
@@ -198,11 +194,11 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
      */
     private onUserJoin(eventData: { newUser: User, userList: Array<{ username: string, id: string, picture: string | null, isRoomMaster: boolean }> }): void {
         let user = eventData.newUser
-        this.log(0, `User ${user.getId()} joined Stadt Land Fluss in room ${this.roomApi.getGameId()}.`)
+        this.logger.debug(`User ${user.getId()} joined Stadt Land Fluss in room ${this.roomApi.getGameId()}.`)
         if (!this.gameState.active && !(user.getId() in this.gameState.players)) {
             this.gameState.players[user.getId()] = user
             this.publishGameState()
-            this.log(0, `Added user ${user.getId()} (${user.getUsername()}) to the player list since the game is not active.`)
+            this.logger.debug(`Added user ${user.getId()} (${user.getUsername()}) to the player list since the game is not active.`)
         }
     }
 
@@ -213,7 +209,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
      */
     private onUserLeave(eventData: { removedUser: User, userList: object[] }): void {
         let user = eventData.removedUser
-        this.log(0, `User ${user.getId()} left the Stadt Land Fluss room ${user.getCurrentRoom().getRoomId()}.`)
+        this.logger.debug(`User ${user.getId()} left the Stadt Land Fluss room ${user.getCurrentRoom().getRoomId()}.`)
         if (user.getId() in this.gameState.players) {
             delete this.gameState.players[user.getId()]
             this.gameState.ready_users = this.gameState.ready_users.filter(id => id !== user.getId())
@@ -223,7 +219,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             this.gameState.points[this.gameState.letter] = this.calculatePointsForRound()
 
             this.publishGameState()
-            this.log(0, `Removed ${user.getId()} (${user.getUsername()}) from the player list since they were in it.`)
+            this.logger.debug(`Removed ${user.getId()} (${user.getUsername()}) from the player list since they were in it.`)
         }
     }
 
@@ -299,7 +295,7 @@ export default class StadtLandFlussGame implements ModuleGameInterface {
             this.gameState.gamePhase = this.gamePhases.ROUND_RESULTS
             this.gameState.ready_users = []
             this.gameState.points[this.gameState.letter] = this.calculatePointsForRound()
-            this.log(0, "Switching to round results.")
+            this.logger.debug("Switching to round results.")
         }
 
         this.publishGameState()

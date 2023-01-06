@@ -1,6 +1,5 @@
 import React, {Component, ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import stadtLandFluss from "./StadtLandFluss";
 import ModuleGameApi from "../../framework/modules/ModuleGameApi";
 import roomManager from "../../framework/util/RoomManager";
 import profileManager from "../../framework/util/ProfileManager";
@@ -9,6 +8,8 @@ import SLFGuessing from "./components/SLFGuessing";
 import SLFRoundResults from "./components/SLFRoundResults";
 import SLFEndResults from "./components/SLFEndResults";
 import {gameState} from "./SLFTypes";
+import {Logger} from "../../framework/util/Logger";
+import stadtLandFluss from "./StadtLandFluss";
 
 /**
  * Main component for the Stadt Land Fluss game.
@@ -134,4 +135,6 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             </div>
         )
     }
+
+    logger: Logger = new Logger(stadtLandFluss.getUniqueId());
 }
