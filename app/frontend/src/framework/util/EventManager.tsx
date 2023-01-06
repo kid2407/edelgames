@@ -1,5 +1,5 @@
 import SocketManagerSingleton from "./SocketManager";
-import debug from "./debug";
+import {clientLogger} from "./Logger";
 
 // the data carried by an event on publish
 export type EventDataObject = {
@@ -39,7 +39,7 @@ class EventManager {
         }
 
         this.eventListeners[event].push(listener);
-        debug('registered event subscription: ' + event);
+        clientLogger.debug('registered event subscription: ' + event);
     }
 
     public unsubscribe(event: string, listener: ListenerFunction): void {
@@ -48,11 +48,11 @@ class EventManager {
         }
 
         this.eventListeners[event] = this.eventListeners[event].filter(el => el !== listener);
-        debug('unregistered event subscription: ' + event);
+        clientLogger.debug('unregistered event subscription: ' + event);
     }
 
     public publish(event: string, eventData: EventDataObject = {}): void {
-        debug('publishing event: ' + event, eventData);
+        clientLogger.debug('publishing event: ' + event, eventData);
         if (this.eventListeners[event]) {
             for (let listener of this.eventListeners[event]) {
                 listener(eventData);

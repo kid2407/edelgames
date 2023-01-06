@@ -2,7 +2,7 @@ import User from "./User";
 import SocketManager from "./util/SocketManager";
 import roomManager from "./RoomManager";
 import ModuleRoomApi from "./modules/ModuleRoomApi";
-import debug from "./util/debug";
+import {systemLogger} from "./util/Logger";
 
 export default class Room {
 
@@ -19,7 +19,7 @@ export default class Room {
         this.roomMaster = roomMaster;
         if (roomMaster) this.roomMembers = [roomMaster];
 
-        debug(2, `created room ${this.roomName} (${this.roomId}) with user ${this.roomMaster ? this.roomMaster.getId() : 'NONE'}`);
+        systemLogger.debug(`created room ${this.roomName} (${this.roomId}) with user ${this.roomMaster ? this.roomMaster.getId() : 'NONE'}`);
     }
 
     public getRoomId(): string {
@@ -58,13 +58,13 @@ export default class Room {
     public setCurrentGame(roomApi: ModuleRoomApi | null) {
         if (this.currentModuleRoomApi && roomApi === null) {
             this.currentModuleRoomApi.alertEvent('gameStopped', {});
-            debug(1, `stopped current game ${this.currentModuleRoomApi.getGameId()} in room ${this.roomId}`);
+            systemLogger.info(`stopped current game ${this.currentModuleRoomApi.getGameId()} in room ${this.roomId}`);
         }
 
         this.currentModuleRoomApi = roomApi;
         this.sendRoomChangedBroadcast();
 
-        debug(1, `started game ${roomApi ? roomApi.getGameId() : 'IDLE'} in room ${this.roomId}`);
+        systemLogger.info(`started game ${roomApi ? roomApi.getGameId() : 'IDLE'} in room ${this.roomId}`);
     }
 
     public onUserNotifiedGame(userId: string, eventName: string, eventData: { [key: string]: any }) {
@@ -73,7 +73,7 @@ export default class Room {
                 senderId: userId,
                 ...eventData
             }, true);
-            debug(1, `user ${userId} notified the gameEvent ${eventName}`);
+            systemLogger.info(`user ${userId} notified the gameEvent ${eventName}`);
         }
     }
 
@@ -123,7 +123,7 @@ export default class Room {
         }
         newMember.switchRoom(this).then(this.sendRoomChangedBroadcast.bind(this));
 
-        debug(2, `user ${newMember.getId()} joined room ${this.roomId} (using passphrase: ${this.roomPassword ? 'yes' : 'no'})`);
+        systemLogger.debug(`user ${newMember.getId()} joined room ${this.roomId} (using passphrase: ${this.roomPassword ? 'yes' : 'no'})`);
         return true;
     }
 
@@ -152,7 +152,7 @@ export default class Room {
         }
 
         this.sendRoomChangedBroadcast();
-        debug(2, `user ${user.getId()} left room ${this.roomId}`);
+        systemLogger.debug(`user ${user.getId()} left room ${this.roomId}`);
     }
 
     /*

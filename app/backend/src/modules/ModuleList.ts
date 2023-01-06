@@ -1,4 +1,4 @@
-import exampleChat from "./examplechat/ExampleChat";
+import exampleChat from "./exampleChat/ExampleChat";
 
 /*
  * Register your module here by simply adding it to the array:
