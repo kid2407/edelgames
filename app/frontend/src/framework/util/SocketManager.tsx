@@ -38,7 +38,7 @@ class SocketManager {
     }
 
     public sendEvent(eventName: string, data: object): void {
-        clientLogger.debug(`Sending event ${eventName} with `, data);
+        clientLogger.debug(`Sending event ${eventName} with `, data.hasOwnProperty("password") ? 'data' : data);
         this.socket.emit(eventName, data);
     }
 

@@ -2,6 +2,7 @@ import Room from "../Room";
 import SocketManager from "../util/SocketManager";
 import ModuleGameInterface from "./ModuleGameInterface";
 import {systemLogger} from "../util/Logger";
+import User from "../User";
 
 type internalEventDataObject = {
     [key: string]: any
@@ -92,6 +93,14 @@ export default class ModuleRoomApi {
     // this will cancel / stop / end the current game instance and return the members back to the game select (idle) room
     public cancelGame(): void {
         this.room.setCurrentGame(null);
+    }
+
+    public getRoomsMembers() {
+        return this.room.getRoomMembers()
+    }
+
+    public getRoomMaster(): User {
+        return this.room.getRoomMaster()
     }
 
 }
