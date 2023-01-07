@@ -1,6 +1,7 @@
 import {io, Socket} from "socket.io-client";
 import eventManager, {ListenerFunction} from "./EventManager";
 import {clientLogger} from "./Logger";
+import ProfileManager from "./ProfileManager";
 
 
 // helper constants don`t need a type, as it is recognized by the value
@@ -22,11 +23,18 @@ class SocketManager {
         this.socket.on("connect", this.onConnectionStatusChanged.bind(this, true));
         this.socket.on("disconnect", this.onConnectionStatusChanged.bind(this, false));
         this.socket.on("connect_error", this.onConnectionStatusChanged.bind(this, false));
-        this.socket.io.on("reconnect", this.onConnectionStatusChanged.bind(this, true));
+        this.socket.io.on("reconnect", this.onReconnected.bind(this));
     }
 
     protected onConnectionStatusChanged(status: boolean): void {
         eventManager.publish(SocketEventNames.connectionStatusChanged, {connected: status});
+    }
+
+    protected onReconnected(): void {
+        this.onConnectionStatusChanged(true);
+        if(!ProfileManager.isVerified()) {
+            ProfileManager.attemptAutomaticAuthLogin();
+        }
     }
 
     public isConnected(): boolean {

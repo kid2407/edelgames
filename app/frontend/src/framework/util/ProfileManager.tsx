@@ -35,16 +35,19 @@ class ProfileManager {
         data = data as ServerProfileObject; // just for correct typechecking
 
         // try automatic login, if the user has no session set
-        const cookies = new Cookies();
-        let authSessionCookie = cookies.get('authSession');
-        if (this.authSessionId === null && data.authSessionId === null && authSessionCookie) {
-            // if we are not logged in, but have an authSessionCookie, we attempt a login with it
-            this.attemptAuthentication(true, '', authSessionCookie);
+        if (data.authSessionId === null) {
+            this.attemptAutomaticAuthLogin();
         }
 
         if (this.authSessionId !== data.authSessionId) {
             // if we have received an authSessionId after successful login, we store it as a cookie
-            cookies.set('authSession', data.authSessionId, {path: '/'});
+            const cookies = new Cookies();
+            if(!data.authSessionId) {
+                cookies.remove('authSession');
+            }
+            else {
+                cookies.set('authSession', data.authSessionId, {path: '/'});
+            }
         }
 
         this.id = data.id;
@@ -54,6 +57,15 @@ class ProfileManager {
         this.authSessionId = data.authSessionId;
 
         EventManager.publish(ProfileEventNames.profileUpdated);
+    }
+
+    public attemptAutomaticAuthLogin(): void {
+        const cookies = new Cookies();
+        let authSessionCookie = cookies.get('authSession');
+        if(this.authSessionId === null && authSessionCookie) {
+            // if we are not logged in, but have an authSessionCookie, we attempt a login with it
+            this.attemptAuthentication(true, '', authSessionCookie);
+        }
     }
 
     public getUsername(): string {

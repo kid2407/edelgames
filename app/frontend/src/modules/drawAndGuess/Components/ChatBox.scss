@@ -1,0 +1,54 @@
+.chat-box {
+  display: flex;
+  flex-direction: column;
+  height: calc(500px - 5rem);
+
+  .chat-box-history {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    overflow: hidden;
+
+    mask-mode: alpha;
+    mask-image: linear-gradient(transparent, black);
+
+    .chat-box-message {
+      padding: 0.25rem;
+      color: inherit;
+
+      &:nth-of-type(2n+1) {
+        background-color: rgba(#ffffff, 0.1);
+      }
+
+      &.message-coloring- {
+        &solution {
+          color: $primary;
+        }
+        &choosing {
+          color: $primary;
+        }
+        &next-round {
+          color: $warning;
+        }
+        &success {
+          color: $success;
+        }
+        &error {
+          color: $error;
+        }
+      }
+    }
+
+  }
+
+  .chat-box-input {
+    flex: 0 0 auto;
+
+    input {
+      width: 100%;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+
+}

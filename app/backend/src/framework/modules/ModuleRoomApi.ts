@@ -4,10 +4,10 @@ import ModuleGameInterface from "./ModuleGameInterface";
 import {systemLogger} from "../util/Logger";
 import User from "../User";
 
-type internalEventDataObject = {
+export type EventDataObject = {
     [key: string]: any
 }
-type internalEventHandlerFunction = (eventData: internalEventDataObject | null) => void;
+type internalEventHandlerFunction = (eventData: EventDataObject | null) => void;
 type internalEventList = {
     [key: string]: internalEventHandlerFunction[]
 }
@@ -39,7 +39,7 @@ export default class ModuleRoomApi {
      * This method will be called automatically, every time an event is triggered.
      * It can also be used to manage internal events for the current game
      */
-    public alertEvent(eventName: string, eventData: internalEventDataObject = null, skipPrefix: boolean = false): void {
+    public alertEvent(eventName: string, eventData: EventDataObject = null, skipPrefix: boolean = false): void {
         let event = skipPrefix ? eventName : this.getGameId() + '_' + eventName;
         if (this.eventListeners[event]) {
             for (let listener of this.eventListeners[event]) {
@@ -90,17 +90,21 @@ export default class ModuleRoomApi {
         });
     }
 
+    public sendPlayerBubble(playerId: string, message: string, type: 'info' | 'error' | 'success' | 'warning' = 'info'): void {
+        let user = this.room.getRoomMembers().find(user => user.getId() === playerId);
+        SocketManager.sendNotificationBubbleToSocket(user.getSocket(), message, type);
+    }
+
     // this will cancel / stop / end the current game instance and return the members back to the game select (idle) room
     public cancelGame(): void {
         this.room.setCurrentGame(null);
     }
 
-    public getRoomsMembers() {
-        return this.room.getRoomMembers()
+    public getRoomMembers(): User[] {
+        return this.room.getRoomMembers();
     }
 
     public getRoomMaster(): User {
-        return this.room.getRoomMaster()
+        return this.room.getRoomMaster();
     }
-
 }

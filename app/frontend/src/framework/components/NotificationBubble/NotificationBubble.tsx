@@ -12,13 +12,11 @@ interface IState {
 
 export default class NotificationBubble extends React.Component<{}, IState> {
 
-    constructor(props: any) {
-        super(props);
+    state = {
+        bubbles: []
+    }
 
-        this.state = {
-            bubbles: []
-        };
-
+    componentDidMount() {
         // event listener for react internal events
         eventManager.subscribe('showNotificationBubble', this.addBubble.bind(this));
         // event listener for server events
@@ -26,7 +24,7 @@ export default class NotificationBubble extends React.Component<{}, IState> {
     }
 
     addBubble(data: EventDataObject) {
-        let bubbles = this.state.bubbles;
+        let bubbles: BubbleMessage[] = [...this.state.bubbles];
         bubbles.push(data as BubbleMessage);
 
         this.setState({
@@ -44,9 +42,9 @@ export default class NotificationBubble extends React.Component<{}, IState> {
         });
     }
 
-    renderBubble(data: BubbleMessage): ReactNode {
+    renderBubble(data: BubbleMessage, index: number): ReactNode {
         return (
-            <div className={"bubble-notification bubble-" + data.type}>
+            <div key={index} className={"bubble-notification bubble-" + data.type}>
                 <span>{data.message}</span>
             </div>
         );
