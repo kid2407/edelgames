@@ -1,15 +1,19 @@
 import ModuleInterface from "../../framework/modules/ModuleInterface";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import DrawAndGuessGame from "./DrawAndGuessGame";
-import debug from "../../framework/util/debug";
 import * as fs from "fs";
+import ModuleLogger from "../../framework/modules/ModuleLogger";
 
 /*
  * This singleton is used to register the game to the ModuleList
  */
-class DrawAndGuess implements ModuleInterface {
+class DrawAndGuess extends ModuleLogger implements ModuleInterface {
 
     private wordList: string[] = [];
+
+    constructor() {
+        super("drawAndGuess");
+    }
 
     getUniqueId(): string {
         return "drawAndGuess";
@@ -33,7 +37,7 @@ class DrawAndGuess implements ModuleInterface {
             });
             return this.wordList;
         } catch (err) {
-            debug(3, err);
+            this.logger.error(err);
         }
 
         return [];
