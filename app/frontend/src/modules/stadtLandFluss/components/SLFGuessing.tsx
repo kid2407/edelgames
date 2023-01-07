@@ -1,5 +1,4 @@
 import {Component} from "react";
-import profileManager from "../../../framework/util/ProfileManager";
 import {GuessingProps} from "../SLFTypes";
 
 /**
@@ -26,7 +25,7 @@ export default class SLFGuessing extends Component<GuessingProps, {}> {
             guesses.push(guessInputs.item(i).value.trim())
         }
 
-        this.props.gameApi.sendMessageToServer("updateGuesses", {guesses: guesses, ready: ready})
+        this.props.gameApi.getEventApi().sendMessageToServer("updateGuesses", {guesses: guesses, ready: ready})
     }
 
     /**
@@ -54,7 +53,7 @@ export default class SLFGuessing extends Component<GuessingProps, {}> {
             for (let i = 0; i < guessInputCollection.length; i++) {
                 guessInputCollection.item(i)?.classList.remove("blocked")
             }
-            this.props.gameApi.sendMessageToServer("unready", {})
+            this.props.gameApi.getEventApi().sendMessageToServer("unready", {})
 
         } else {
             button.classList.add("submitted")
@@ -69,6 +68,8 @@ export default class SLFGuessing extends Component<GuessingProps, {}> {
      * Render the component.
      */
     render() {
+        let localePlayerId = this.props.gameApi.getPlayerApi().getLocalePlayer().getId();
+
         return (<div id={"slfGuessing"}>
             <p>Runde {this.props.round} von {this.props.max_rounds}</p>
             <p>Buchstabe: {this.props.letter}</p>
@@ -84,7 +85,11 @@ export default class SLFGuessing extends Component<GuessingProps, {}> {
                     <tr>
                         <td>{c}</td>
                         {/* @ts-ignore */}
-                        <td><input onBlur={this.onBlur.bind(this)} type={"text"} key={`${profileManager.getId()}_${this.props.letter}_${c}`} defaultValue={this.props.guesses[profileManager.getId()]?.[this.props.letter]?.[c]}/></td>
+                        <td><input
+                            onBlur={this.onBlur.bind(this)}
+                            type={"text"}
+                            key={`${localePlayerId}_${this.props.letter}_${c}`}
+                            defaultValue={this.props.guesses[localePlayerId]?.[this.props.letter]?.[c]}/></td>
                     </tr>)}
                 </tbody>
             </table>

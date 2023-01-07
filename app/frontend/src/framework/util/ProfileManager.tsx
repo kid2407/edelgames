@@ -1,6 +1,7 @@
 import EventManager, {EventDataObject} from "./EventManager";
 import Cookies from "universal-cookie";
 import socketManager from "./SocketManager";
+import RoomManager from "./RoomManager";
 
 /**
  * Stores and manages all data concerning the users own profile
@@ -84,6 +85,9 @@ class ProfileManager {
         return this.verified;
     }
 
+    public isRoomMaster(): boolean {
+        return this.id === RoomManager.getRoomMaster()?.getId();
+    }
 
     public attemptAuthentication(isAuthSession: boolean, username: string, password: string): void {
         socketManager.sendEvent('userLoginAttempt', {

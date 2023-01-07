@@ -14,7 +14,7 @@ export default class SLFConfig extends Component<ConfigProps, {}> {
         if (settingsDiv) {
             // @ts-ignore
             let categoriesString = settingsDiv.getElementsByClassName("categories")[0].value
-            this.props.gameApi.sendMessageToServer("updateSettings", {
+            this.props.gameApi.getEventApi().sendMessageToServer("updateSettings", {
                 // @ts-ignore
                 rounds: parseInt(settingsDiv.getElementsByClassName("rounds")[0].value),
                 categories: categoriesString ? categoriesString.split(",") : []
@@ -26,7 +26,7 @@ export default class SLFConfig extends Component<ConfigProps, {}> {
      * Start the game.
      */
     private startGame() {
-        this.props.gameApi.sendMessageToServer("startGame", {})
+        this.props.gameApi.getEventApi().sendMessageToServer("startGame", {})
     }
 
     /**

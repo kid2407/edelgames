@@ -1,6 +1,5 @@
 import React, {ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import ModuleGameApi, {EventHandlerFunctionStack} from "../../framework/modules/ModuleGameApi";
 import drawAndGuess from "./DrawAndGuess";
 import DrawingCanvas, {
     canvasChangedEvent,
@@ -17,6 +16,7 @@ import ChatBox, {DAGChatMessage} from "./Components/ChatBox";
 import GameStateBox from "./Components/GameStateBox";
 import GameConfig, {GameConfigObject} from "./Components/GameConfig";
 import WordSelection from "./Components/WordSelection";
+import ModuleApi from "../../framework/modules/ModuleApi";
 
 interface IState {
     currentMode: string,
@@ -34,22 +34,10 @@ interface IState {
 
 export default class DrawAndGuessGame extends React.Component<{}, IState> implements ModuleGameInterface {
 
-    private readonly gameApi: ModuleGameApi;
+    private readonly api: ModuleApi;
     private drawingCommandQueue: canvasChangedEvent[] = [];
     private scoreboard: {[key: string] : number} = {};
     private messageHistory: DAGChatMessage[] = [];
-
-    eventHandlers: EventHandlerFunctionStack = {
-        passiveCanvasChanged: this.onCanvasChangedRemote.bind(this),
-        wordToGuessChanged: this.onWordToGuessChanged.bind(this),
-        newGuessChatMessage: this.onNewGuessChatMessage.bind(this),
-        activePlayerChanged: this.onActivePlayerChanged.bind(this),
-        wordSelectionOptions: this.onWordSelectionOptions.bind(this),
-        wordToDrawChanged: this.onWordToDrawChanged.bind(this),
-        drawingSolution: this.onDrawingSolution.bind(this),
-        gameStateChanged: this.onGameStateChanged.bind(this),
-        configurationChanged: this.onRemoteConfigChanged.bind(this),
-    }
 
     state = {
         currentMode: drawingModes.DRAW,
@@ -67,32 +55,32 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
 
     constructor(props: any) {
         super(props);
-        this.gameApi = new ModuleGameApi(drawAndGuess, this);
+        this.api = new ModuleApi(drawAndGuess, this);
     }
 
     // this method is called, once the component is ready and setState can be used
     componentDidMount(): void {
-        this.gameApi.addEventHandler('passiveCanvasChanged', this.eventHandlers.passiveCanvasChanged);
-        this.gameApi.addEventHandler('wordToGuessChanged', this.eventHandlers.wordToGuessChanged);
-        this.gameApi.addEventHandler('newGuessChatMessage', this.eventHandlers.newGuessChatMessage);
-        this.gameApi.addEventHandler('activePlayerChanged', this.eventHandlers.activePlayerChanged);
-        this.gameApi.addEventHandler('wordSelectionOptions', this.eventHandlers.wordSelectionOptions);
-        this.gameApi.addEventHandler('wordToDrawChanged', this.eventHandlers.wordToDrawChanged);
-        this.gameApi.addEventHandler('drawingSolution', this.eventHandlers.drawingSolution);
-        this.gameApi.addEventHandler('gameStateChanged', this.eventHandlers.gameStateChanged);
-        this.gameApi.addEventHandler('configurationChanged', this.eventHandlers.configurationChanged);
+        this.api.getEventApi().addEventHandler('passiveCanvasChanged', this.onCanvasChangedRemote.bind(this));
+        this.api.getEventApi().addEventHandler('wordToGuessChanged', this.onWordToGuessChanged.bind(this));
+        this.api.getEventApi().addEventHandler('newGuessChatMessage', this.onNewGuessChatMessage.bind(this));
+        this.api.getEventApi().addEventHandler('activePlayerChanged', this.onActivePlayerChanged.bind(this));
+        this.api.getEventApi().addEventHandler('wordSelectionOptions', this.onWordSelectionOptions.bind(this));
+        this.api.getEventApi().addEventHandler('wordToDrawChanged', this.onWordToDrawChanged.bind(this));
+        this.api.getEventApi().addEventHandler('drawingSolution', this.onDrawingSolution.bind(this));
+        this.api.getEventApi().addEventHandler('gameStateChanged', this.onGameStateChanged.bind(this));
+        this.api.getEventApi().addEventHandler('configurationChanged', this.onRemoteConfigChanged.bind(this));
     }
 
     componentWillUnmount() {
-        this.gameApi.removeEventHandler('passiveCanvasChanged', this.eventHandlers.passiveCanvasChanged);
-        this.gameApi.removeEventHandler('wordToGuessChanged', this.eventHandlers.wordToGuessChanged);
-        this.gameApi.removeEventHandler('newGuessChatMessage', this.eventHandlers.newGuessChatMessage);
-        this.gameApi.removeEventHandler('activePlayerChanged', this.eventHandlers.activePlayerChanged);
-        this.gameApi.removeEventHandler('wordSelectionOptions', this.eventHandlers.wordSelectionOptions);
-        this.gameApi.removeEventHandler('wordToDrawChanged', this.eventHandlers.wordToDrawChanged);
-        this.gameApi.removeEventHandler('drawingSolution', this.eventHandlers.drawingSolution);
-        this.gameApi.removeEventHandler('gameStateChanged', this.eventHandlers.gameStateChanged);
-        this.gameApi.removeEventHandler('configurationChanged', this.eventHandlers.configurationChanged);
+        this.api.getEventApi().removeEvent('passiveCanvasChanged');
+        this.api.getEventApi().removeEvent('wordToGuessChanged');
+        this.api.getEventApi().removeEvent('newGuessChatMessage');
+        this.api.getEventApi().removeEvent('activePlayerChanged');
+        this.api.getEventApi().removeEvent('wordSelectionOptions');
+        this.api.getEventApi().removeEvent('wordToDrawChanged');
+        this.api.getEventApi().removeEvent('drawingSolution');
+        this.api.getEventApi().removeEvent('gameStateChanged');
+        this.api.getEventApi().removeEvent('configurationChanged');
     }
 
     /* ====================== */
@@ -161,7 +149,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
             px: 0, py: 0,
         }];
 
-        let player = RoomManager.getRoomMembers().find(member => member.getId() === activePlayer);
+        let player = this.api.getPlayerApi().getPlayerById(activePlayer);
 
         this.addChatMessage(
             `${player?.getUsername()} is an der Reihe!`,
@@ -210,13 +198,13 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
     /* ====================== */
 
     onWordSelection(word: string): void {
-        this.gameApi.sendMessageToServer('activeWordChosen', {
+        this.api.getEventApi().sendMessageToServer('activeWordChosen', {
             selection: word
         });
     }
 
     onGameConfigSubmitted(config: GameConfigObject): void {
-        this.gameApi.sendMessageToServer('submitConfigAndStart', {
+        this.api.getEventApi().sendMessageToServer('submitConfigAndStart', {
             configuration: config
         });
         this.setState({
@@ -225,13 +213,13 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
     }
 
     onGameConfigChanged(config: GameConfigObject): void {
-        this.gameApi.sendMessageToServer('configChangedPreview', {
+        this.api.getEventApi().sendMessageToServer('configChangedPreview', {
             configuration: config
         });
     }
 
     onMessageSend(message: string): void {
-        this.gameApi.sendMessageToServer('attemptGuess', {
+        this.api.getEventApi().sendMessageToServer('attemptGuess', {
             guess: message
         });
     }
@@ -242,7 +230,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
     }
 
     onCanvasChanged(event: canvasChangedEvent): void {
-        this.gameApi.sendMessageToServer('activeCanvasChanged', {
+        this.api.getEventApi().sendMessageToServer('activeCanvasChanged', {
             canvasChangedEvent: event
         });
     }
@@ -342,7 +330,7 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
             <div id={"drawAndGuess"} key={"drawAndGuess"}>
                 <div className={"player-list"}>
                     <div>
-                        {RoomManager.getRoomMembers().map(this.renderPlayerListElement.bind(this))}
+                        {this.api.getPlayerApi().getPlayers().map(this.renderPlayerListElement.bind(this))}
                     </div>
                 </div>
                 <div className={"drawing-board"}>

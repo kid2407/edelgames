@@ -1,22 +1,19 @@
 import React, {Component, ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import ModuleGameApi from "../../framework/modules/ModuleGameApi";
-import roomManager from "../../framework/util/RoomManager";
-import profileManager from "../../framework/util/ProfileManager";
 import SLFConfig from "./components/SLFConfig";
 import SLFGuessing from "./components/SLFGuessing";
 import SLFRoundResults from "./components/SLFRoundResults";
 import SLFEndResults from "./components/SLFEndResults";
 import {gameState} from "./SLFTypes";
-import {Logger} from "../../framework/util/Logger";
 import stadtLandFluss from "./StadtLandFluss";
+import ModuleApi from "../../framework/modules/ModuleApi";
 
 /**
  * Main component for the Stadt Land Fluss game.
  */
 export default class StadtLandFlussGame extends Component<{}, gameState> implements ModuleGameInterface {
 
-    private readonly gameApi: ModuleGameApi
+    private readonly api: ModuleApi;
 
     private hasBeenMounted: boolean = false
 
@@ -41,7 +38,7 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
 
     constructor(props: any) {
         super(props)
-        this.gameApi = new ModuleGameApi(stadtLandFluss, this)
+        this.api = new ModuleApi(stadtLandFluss, this)
     }
 
     /**
@@ -50,8 +47,8 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
      */
     componentDidMount(): void {
         if (!this.hasBeenMounted) {
-            this.gameApi.addEventHandler('updateGameState', this.onGameStateUpdate.bind(this));
-            this.gameApi.sendMessageToServer("requestGameState", {})
+            this.api.getEventApi().addEventHandler('updateGameState', this.onGameStateUpdate.bind(this));
+            this.api.getEventApi().sendMessageToServer("requestGameState", {})
             this.hasBeenMounted = true
         }
     }
@@ -80,38 +77,50 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
      * Return to the game selection screen.
      */
     private returnToGameSelection(): void {
-        this.gameApi.sendMessageToServer("returnToGameSelection", {})
+        this.api.getEventApi().sendMessageToServer("returnToGameSelection", {})
     }
 
-
-    /**
-     * Determines if the current user is the room master.
-     */
-    private isRoomMaster(): boolean {
-        // @ts-ignore
-        return profileManager.getId() === roomManager.getRoomMaster().getId()
-    }
 
     /**
      * Return the appropriate component for the current game phase.
      */
     private getCurrentlyActiveSection(): ReactNode {
         // @ts-ignore
-        if (!this.state.players.includes(profileManager.getId())){
+        if (!this.state.players.includes(this.api.getPlayerApi().getLocalePlayer().getId())){
             return <p>Das Spiel läuft gerade, bitte warte bis zur nächsten Runde, um mitzuspielen.</p>
         }
+        let isRoomMaster = this.api.getPlayerApi().getLocalePlayer().isRoomMaster();
+
         switch (this.state.gamePhase) {
             case "setup":
-                return <SLFConfig gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} config={this.state.config}/>
+                return <SLFConfig gameApi={this.api}
+                                  isRoomMaster={isRoomMaster}
+                                  config={this.state.config}/>
             case "guessing":
-                return <SLFGuessing gameApi={this.gameApi} isRoomMaster={this.isRoomMaster()} categories={this.state.config.categories} guesses={this.state.guesses} letter={this.state.letter}
-                                    max_rounds={this.state.config.rounds} round={this.state.round} ready_users={this.state.ready_users} user_count={this.state.players.length}/>
+                return <SLFGuessing gameApi={this.api}
+                                    isRoomMaster={isRoomMaster}
+                                    categories={this.state.config.categories}
+                                    guesses={this.state.guesses}
+                                    letter={this.state.letter}
+                                    max_rounds={this.state.config.rounds}
+                                    round={this.state.round}
+                                    ready_users={this.state.ready_users}
+                                    user_count={this.state.players.length}/>
             case "round_results":
-                return <SLFRoundResults gameApi={this.gameApi} letter={this.state.letter} round={this.state.round} max_rounds={this.state.config.rounds}
-                                        guesses={this.state.guesses} categories={this.state.config.categories} players={this.state.players} isRoomMaster={this.isRoomMaster()}
-                                        points={this.state.points} point_overrides={this.state.point_overrides}/>
+                return <SLFRoundResults gameApi={this.api}
+                                        letter={this.state.letter}
+                                        round={this.state.round}
+                                        max_rounds={this.state.config.rounds}
+                                        guesses={this.state.guesses}
+                                        categories={this.state.config.categories}
+                                        players={this.state.players}
+                                        isRoomMaster={isRoomMaster}
+                                        points={this.state.points}
+                                        point_overrides={this.state.point_overrides}/>
             case "end_screen":
-                return <SLFEndResults points={this.state.points} isRoomMaster={this.isRoomMaster()} gameApi={this.gameApi}/>
+                return <SLFEndResults points={this.state.points}
+                                      isRoomMaster={isRoomMaster}
+                                      gameApi={this.api}/>
             default:
                 return <p>Oh no - something went wrong! Unknown game phase "{this.state.gamePhase}"</p>
         }
@@ -121,7 +130,7 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
      * Renders the "Zur Spielauswahl" button.
      */
     private renderBackToGameSelectionButton(): ReactNode {
-        return this.isRoomMaster() ? <button onClick={this.returnToGameSelection.bind(this)}>Zur Spielauswahl</button> : ""
+        return this.api.getPlayerApi().getLocalePlayer().isRoomMaster() ? <button onClick={this.returnToGameSelection.bind(this)}>Zur Spielauswahl</button> : null;
     }
 
     /**
@@ -135,6 +144,4 @@ export default class StadtLandFlussGame extends Component<{}, gameState> impleme
             </div>
         )
     }
-
-    logger: Logger = new Logger(stadtLandFluss.getUniqueId());
 }

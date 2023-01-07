@@ -1,4 +1,4 @@
-import ModuleGameApi from "../../framework/modules/ModuleGameApi";
+import ModuleApi from "../../framework/modules/ModuleApi";
 
 export type gameConfig = {
     categories: string[],
@@ -6,7 +6,9 @@ export type gameConfig = {
 }
 export type Guesses = {
     [userId: string]: {
-        [letter: string]: string[]
+        [letter: string]: {
+            [category: string]: string
+        }
     }
 }
 export type Points = {
@@ -39,7 +41,7 @@ export type gameState = {
 }
 export type RoundResultProps = {
     isRoomMaster: boolean
-    gameApi: ModuleGameApi
+    gameApi: ModuleApi
     round: number,
     max_rounds: number
     letter: string,
@@ -52,7 +54,7 @@ export type RoundResultProps = {
 
 export type ConfigProps = {
     isRoomMaster: boolean,
-    gameApi: ModuleGameApi,
+    gameApi: ModuleApi,
     config: {
         rounds: number,
         categories: string[]
@@ -61,11 +63,11 @@ export type ConfigProps = {
 export type EndResultProps = {
     points: Points,
     isRoomMaster: boolean,
-    gameApi: ModuleGameApi
+    gameApi: ModuleApi
 }
 export type GuessingProps = {
     isRoomMaster: boolean,
-    gameApi: ModuleGameApi,
+    gameApi: ModuleApi,
     categories: string[],
     letter: string,
     guesses: Guesses,
