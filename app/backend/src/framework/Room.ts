@@ -1,8 +1,8 @@
 import User from "./User";
 import SocketManager from "./util/SocketManager";
 import roomManager from "./RoomManager";
-import ModuleRoomApi from "./modules/ModuleRoomApi";
 import {systemLogger} from "./util/Logger";
+import ModuleApi from "./modules/ModuleApi";
 
 export default class Room {
 
@@ -11,7 +11,7 @@ export default class Room {
     protected roomMembers: User[] = [];
     protected roomMaster: User | null;
     protected roomPassword: string | null = null;
-    protected currentModuleRoomApi: ModuleRoomApi | null = null;
+    protected moduleApi: ModuleApi | null = null;
 
     constructor(roomMaster: User | null) {
         this.roomId = this.createIdHash();
@@ -39,7 +39,7 @@ export default class Room {
     }
 
     public getCurrentGameId(): string | null {
-        return this.currentModuleRoomApi ? this.currentModuleRoomApi.getGameId() : null
+        return this.moduleApi ? this.moduleApi.getGameId() : null
     }
 
     public getRoomMaster(): User | null {
@@ -55,21 +55,21 @@ export default class Room {
         this.sendRoomChangedBroadcast();
     }
 
-    public setCurrentGame(roomApi: ModuleRoomApi | null) {
-        if (this.currentModuleRoomApi && roomApi === null) {
-            this.currentModuleRoomApi.alertEvent('gameStopped', {});
-            systemLogger.info(`stopped current game ${this.currentModuleRoomApi.getGameId()} in room ${this.roomId}`);
+    public setCurrentGame(roomApi: ModuleApi | null) {
+        if (this.moduleApi && roomApi === null) {
+            this.moduleApi.getEventApi().alertEvent('gameStopped', {});
+            systemLogger.info(`stopped current game ${this.moduleApi.getGameId()} in room ${this.roomId}`);
         }
 
-        this.currentModuleRoomApi = roomApi;
+        this.moduleApi = roomApi;
         this.sendRoomChangedBroadcast();
 
         systemLogger.info(`started game ${roomApi ? roomApi.getGameId() : 'IDLE'} in room ${this.roomId}`);
     }
 
     public onUserNotifiedGame(userId: string, eventName: string, eventData: { [key: string]: any }) {
-        if (this.currentModuleRoomApi) {
-            this.currentModuleRoomApi.alertEvent(eventName, {
+        if (this.moduleApi) {
+            this.moduleApi.getEventApi().alertEvent(eventName, {
                 senderId: userId,
                 ...eventData
             }, true);
@@ -85,7 +85,7 @@ export default class Room {
             roomId: this.roomId,
             roomName: this.roomName,
             roomMembers: this.getPublicRoomMemberList(),
-            currentGameId: this.currentModuleRoomApi ? this.currentModuleRoomApi.getGameId() : null
+            currentGameId: this.moduleApi ? this.moduleApi.getGameId() : null
         });
 
         roomManager.updateLobbyMembersRoomData();
@@ -115,8 +115,8 @@ export default class Room {
         }
 
         this.roomMembers.push(newMember);
-        if (this.currentModuleRoomApi) {
-            this.currentModuleRoomApi.alertEvent('userJoined', {
+        if (this.moduleApi) {
+            this.moduleApi.getEventApi().alertEvent('userJoined', {
                 newUser: newMember,
                 userList: this.getPublicRoomMemberList()
             });
@@ -137,8 +137,8 @@ export default class Room {
     public removeUserFromRoom(user: User) {
         this.roomMembers = this.roomMembers.filter((member) => member !== user);
 
-        if (this.currentModuleRoomApi) {
-            this.currentModuleRoomApi.alertEvent('userLeft', {
+        if (this.moduleApi) {
+            this.moduleApi.getEventApi().alertEvent('userLeft', {
                 removedUser: user,
                 userList: this.getPublicRoomMemberList()
             });

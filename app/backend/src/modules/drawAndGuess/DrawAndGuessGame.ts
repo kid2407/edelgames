@@ -1,8 +1,9 @@
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import ModuleRoomApi, {EventDataObject} from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
 import drawAndGuess from "./DrawAndGuess";
 import {clearTimeout} from "timers";
+import ModuleApi from "../../framework/modules/ModuleApi";
+import {EventDataObject} from "../../framework/modules/api/ModuleEventApi";
 
 enum gameStates {
     CONFIGURATION = 'configuration',
@@ -16,7 +17,7 @@ enum gameStates {
 export default class DrawAndGuessGame implements ModuleGameInterface {
 
     // misc variables
-    roomApi: ModuleRoomApi = null;
+    api: ModuleApi = null;
     activePlayerIndex: number = 0;
     activePlayer: User = undefined; //
     activeGameState: gameStates = gameStates.CONFIGURATION; // what the server is currently doing
@@ -41,22 +42,22 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     availableWords: string[] = ['you should', 'not see', 'this list'];
     playersWithCorrectGuess: {playerId: string, timing: number}[] = [];
 
-    onGameInitialize(roomApi: ModuleRoomApi): void {
-        this.roomApi = roomApi;
-        this.roomApi.addEventHandler('activeCanvasChanged', this.onActiveCanvasChanged.bind(this));
-        this.roomApi.addEventHandler('activeWordChosen', this.onActiveWordChosen.bind(this));
-        this.roomApi.addEventHandler('attemptGuess', this.onAttemptGuess.bind(this));
-        this.roomApi.addEventHandler('submitConfigAndStart', this.onSubmitConfigAndStart.bind(this));
-        this.roomApi.addEventHandler('configChangedPreview', this.onConfigChangedPreview.bind(this));
-        this.roomApi.addUserLeaveHandler(this.onUserLeaveHandler.bind(this));
+    onGameInitialize(api: ModuleApi): void {
+        this.api = api;
+        this.api.getEventApi().addEventHandler('activeCanvasChanged', this.onActiveCanvasChanged.bind(this));
+        this.api.getEventApi().addEventHandler('activeWordChosen', this.onActiveWordChosen.bind(this));
+        this.api.getEventApi().addEventHandler('attemptGuess', this.onAttemptGuess.bind(this));
+        this.api.getEventApi().addEventHandler('submitConfigAndStart', this.onSubmitConfigAndStart.bind(this));
+        this.api.getEventApi().addEventHandler('configChangedPreview', this.onConfigChangedPreview.bind(this));
+        this.api.getEventApi().addUserLeaveHandler(this.onUserLeaveHandler.bind(this));
     }
 
     updateActivePlayer(stepToNextPlayer: boolean = false): void {
-        let roomMembers = this.roomApi.getRoomMembers();
+        let roomMembers = this.api.getPlayerApi().getRoomMembers();
         if(roomMembers.length === 0) {
             // no one left
             this.setGameState(gameStates.CLOSING);
-            this.roomApi.cancelGame();
+            this.api.cancelGame();
             return;
         }
 
@@ -86,12 +87,12 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             }
 
             // active player has changed -> notify players
-            this.roomApi.sendRoomMessage('activePlayerChanged', {
+            this.api.getPlayerApi().sendRoomMessage('activePlayerChanged', {
                 activePlayer: this.activePlayer.getId()
             });
 
             this.selectNewWordOptions();
-            this.roomApi.sendPlayerMessage(this.activePlayer.getId(), 'wordSelectionOptions', {
+            this.api.getPlayerApi().sendPlayerMessage(this.activePlayer.getId(), 'wordSelectionOptions', {
                 options: this.availableWords
             })
             this.setGameState(gameStates.WORD_SELECTION);
@@ -161,7 +162,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     onActiveCanvasChanged(eventData: { [key: string]: any }) {
         if(this.activePlayer && this.activePlayer.getId() === eventData.senderId) {
             // only the active player can draw and send
-            this.roomApi.sendRoomMessage('passiveCanvasChanged', eventData.canvasChangedEvent);
+            this.api.getPlayerApi().sendRoomMessage('passiveCanvasChanged', eventData.canvasChangedEvent);
         }
     }
 
@@ -192,13 +193,13 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                 this.drawingTimerTimestamp = Date.now();
 
                 // tell all players the wordmask
-                this.roomApi.sendRoomMessage('wordToGuessChanged', {
+                this.api.getPlayerApi().sendRoomMessage('wordToGuessChanged', {
                     mask: this.activeWordMask,
                     timeUntil: (this.drawingTimerTimestamp + this.msUntilDrawingTimeout)
                 });
 
                 // tell the painter the selected word
-                this.roomApi.sendPlayerMessage(this.activePlayer.getId(), 'wordToDrawChanged', {
+                this.api.getPlayerApi().sendPlayerMessage(this.activePlayer.getId(), 'wordToDrawChanged', {
                     word: this.activeWord
                 });
 
@@ -219,7 +220,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
                 }
             }
             else {
-                this.roomApi.sendPlayerBubble(eventData.senderId, 'Invalid selection!', 'error');
+                this.api.getPlayerApi().sendPlayerBubble(eventData.senderId, 'Invalid selection!', 'error');
             }
         }
     }
@@ -234,7 +235,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
         let drawnMs = Date.now() - this.drawingTimerTimestamp;
         let drawnPct = drawnMs / this.msUntilDrawingTimeout;
-        let guessPct = this.playersWithCorrectGuess.length / (this.roomApi.getRoomMembers().length-1);
+        let guessPct = this.playersWithCorrectGuess.length / (this.api.getPlayerApi().getRoomMembers().length-1);
 
 
         let avgTiming = 0;
@@ -258,7 +259,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
         this.scoreboard[this.activePlayer.getId()] = (this.scoreboard[this.activePlayer.getId()] || 0) + Math.floor(painterPoints);
 
-        this.roomApi.sendRoomMessage('drawingSolution', {
+        this.api.getPlayerApi().sendRoomMessage('drawingSolution', {
             solution: this.activeWord,
             scoreboard: this.scoreboard
         });
@@ -277,7 +278,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         let maskData = this.createWordMask(false, 1);
 
         if(this.activeGameState === gameStates.DRAWING && maskData.masked/maskData.total > (1-this.maxHintsThreshold)) {
-            this.roomApi.sendRoomMessage('wordToGuessChanged', {
+            this.api.getPlayerApi().sendRoomMessage('wordToGuessChanged', {
                 mask: this.activeWordMask
             });
 
@@ -306,7 +307,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
             senderId !== this.activePlayer.getId() &&
             !this.playersWithCorrectGuess.find(el => el.playerId === senderId))
         {
-            let roomMembers = this.roomApi.getRoomMembers();
+            let roomMembers = this.api.getPlayerApi().getRoomMembers();
 
             if(guess === this.activeWord) {
                 let now = Date.now();
@@ -334,7 +335,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
     }
 
     sendRoomChatMessage(senderId: string|null, message: string, coloring: string|null = null, timestamp: number|null = null): void {
-        this.roomApi.sendRoomMessage('newGuessChatMessage', {
+        this.api.getPlayerApi().sendRoomMessage('newGuessChatMessage', {
             sender: senderId,
             text: message,
             color: coloring,
@@ -344,7 +345,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
 
     setGameState(state: gameStates): void {
         this.activeGameState = state;
-        this.roomApi.sendRoomMessage('gameStateChanged', {
+        this.api.getPlayerApi().sendRoomMessage('gameStateChanged', {
             gameState: state
         });
     }
@@ -353,13 +354,13 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         let {configuration, senderId} = eventData;
 
         if( this.activeGameState !== gameStates.CONFIGURATION ||
-            senderId !== this.roomApi.getRoomMaster().getId())
+            senderId !== this.api.getPlayerApi().getRoomMaster().getId())
         {
             return;
         }
 
         // configuration has changed -> notify players
-        this.roomApi.sendRoomMessage('configurationChanged', {
+        this.api.getPlayerApi().sendRoomMessage('configurationChanged', {
             configuration: configuration
         });
     }
@@ -368,7 +369,7 @@ export default class DrawAndGuessGame implements ModuleGameInterface {
         let {configuration, senderId} = eventData;
 
         if( this.activeGameState !== gameStates.CONFIGURATION ||
-            senderId !== this.roomApi.getRoomMaster().getId())
+            senderId !== this.api.getPlayerApi().getRoomMaster().getId())
         {
             return;
         }
