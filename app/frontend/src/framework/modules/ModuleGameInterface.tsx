@@ -1,7 +1,5 @@
-import {Logger} from "../util/Logger";
 
-export default abstract class ModuleGameInterface {
+export default interface ModuleGameInterface {
 
-    abstract logger: Logger
 
 }

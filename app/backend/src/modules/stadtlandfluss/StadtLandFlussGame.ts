@@ -8,7 +8,7 @@ import ModuleLogger from "../../framework/modules/ModuleLogger";
  * Main class for the Stadt Land Fluss game.
  */
 export default class StadtLandFlussGame extends ModuleLogger implements ModuleGameInterface {
-    roomApi: ModuleRoomApi | null = null;
+    roomApi: ModuleRoomApi;
     gameState: gameState | null = null
 
     /**
@@ -74,7 +74,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
         this.roomApi.addUserJoinedHandler(this.onUserJoin.bind(this))
         this.roomApi.addUserLeaveHandler(this.onUserLeave.bind(this))
         this.gameState = {...this.initialGameState}
-        for (let roomMember of this.roomApi.getRoomsMembers()) {
+        for (let roomMember of this.roomApi.getRoomMembers()) {
             this.gameState.players[roomMember.getId()] = roomMember
         }
     }
@@ -263,7 +263,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
                 this.gameState.letter = this.getRandomLetter()
                 this.gameState.gamePhase = this.gamePhases.GUESSING
 
-                for (let roomMember of this.roomApi.getRoomsMembers()) {
+                for (let roomMember of this.roomApi.getRoomMembers()) {
                     this.gameState.players[roomMember.getId()] = roomMember
                 }
             } else {
@@ -320,7 +320,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
             let newState = Object.create(this.initialGameState)
             newState.config = this.gameState.config
 
-            for (let roomMember of this.roomApi.getRoomsMembers()) {
+            for (let roomMember of this.roomApi.getRoomMembers()) {
                 newState.players[roomMember.getId()] = roomMember
             }
 
