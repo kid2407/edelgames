@@ -243,7 +243,6 @@ export default class DrawingCanvas extends React.Component<IProps, {}> {
             }
         }
 
-        console.log(`filled ${fillCounter} pixels`);
         p5.updatePixels(0,0, width, height);
         this.isEmptyCanvas = false;
     }

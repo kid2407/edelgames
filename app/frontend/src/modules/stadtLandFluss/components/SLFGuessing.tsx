@@ -26,7 +26,6 @@ export default class SLFGuessing extends Component<GuessingProps, {}> {
             guesses.push(guessInputs.item(i).value.trim())
         }
 
-        console.log(guesses)
         this.props.gameApi.sendMessageToServer("updateGuesses", {guesses: guesses, ready: ready})
     }
 
