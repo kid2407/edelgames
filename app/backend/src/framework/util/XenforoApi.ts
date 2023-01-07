@@ -1,7 +1,7 @@
 import * as querystring from "querystring";
 import * as https from "https";
 import {IncomingMessage} from "http";
-import debug from "./debug";
+import {systemLogger} from "./Logger";
 
 
 export type authDataContainer = {
@@ -93,11 +93,11 @@ export default class XenforoApi {
      * @param responseText
      */
     private static onAuthResponseBody(callback: authRequestCallbackFunction, responseText: string): void {
-        debug(0, "Got response from server with data:", responseText)
+        systemLogger.debug("Got response from server with data:", responseText)
 
         try {
             let jsonResponse: loginResponse = JSON.parse(responseText)
-            console.log(jsonResponse.login_successful)
+            systemLogger.debug("Login was successfull:", jsonResponse.login_successful)
 
             if (!jsonResponse.login_successful) {
                 callback(false, null)

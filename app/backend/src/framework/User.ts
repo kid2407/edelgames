@@ -2,9 +2,9 @@ import {Socket} from "socket.io";
 import Room from "./Room";
 import SocketManager from "./util/SocketManager";
 import RoomManager from "./RoomManager";
-import debug from "./util/debug";
 import ModuleRegistry from "./modules/ModuleRegistry";
 import XenforoApi, {authDataContainer} from "./util/XenforoApi";
+import {systemLogger} from "./util/Logger";
 
 export default class User {
 
@@ -107,11 +107,10 @@ export default class User {
 
         if (loginData.isAuthSessionId) {
             let sessionId = this.authSessionId ?? password;
-            debug(1, `user ${this.id} attempted login with authId`);
+            systemLogger.info(`user ${this.id} attempted login with authId`);
             XenforoApi.loginWithToken(sessionId, this.onAuthResponse.bind(this))
-        }
-        else {
-            debug(1, `user ${this.id} attempted login as ${username} using password`);
+        } else {
+            systemLogger.info(`user ${this.id} attempted login as ${username} using password`);
             XenforoApi.loginWithPassword(username, password, this.onAuthResponse.bind(this))
         }
     }
@@ -123,7 +122,7 @@ export default class User {
      */
     public onAuthResponse(success: boolean, data: null | authDataContainer): void {
         if (!success || !data) {
-            debug(1, `authentication attempt failed for user ${this.id}`);
+            systemLogger.info(`authentication attempt failed for user ${this.id}`);
             SocketManager.sendNotificationBubbleToSocket(this.socket, 'Authentication failed!', 'error');
             return;
         }
@@ -137,7 +136,7 @@ export default class User {
         this.sendUserProfileChangedMessage();
         this.currentRoom.sendRoomChangedBroadcast();
 
-        debug(1, `user ${this.id} authenticated as ${this.name}`);
+        systemLogger.info(`user ${this.id} authenticated as ${this.name}`);
     }
 
     public onRefreshLobbyRoomData(): void {

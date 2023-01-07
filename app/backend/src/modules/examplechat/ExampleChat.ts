@@ -12,7 +12,7 @@ class ExampleChat implements ModuleInterface {
     }
 
     getGameInstance(): ModuleGameInterface {
-        return new ExampleChatGame();
+        return new ExampleChatGame(this.getUniqueId());
     }
 
 
