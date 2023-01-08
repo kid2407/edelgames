@@ -105,7 +105,7 @@ import ModuleApi from "../../framework/modules/ModuleApi";
  */
 export default class AdvancedMemoryGame implements ModuleGameInterface {
 
-    private readonly api: ModuleApi;
+    private api: ModuleApi;
 
     onGameInitialize(api: ModuleApi): void {
         this.api = api;
@@ -169,7 +169,7 @@ const advancedMemory = new AdvancedMemory();
 export default advancedMemory;
 ```
 
-**AdvancedmemoryGame.tsx**
+**AdvancedMemoryGame.tsx**
 
 ```typescript jsx
 import React, {ReactNode} from "react";
@@ -179,7 +179,7 @@ import advancedMemory from "./AdvancedMemory";
 
 export default class AdvancedMemoryGame extends React.Component<{}, {}> implements ModuleGameInterface {
 
-    private readonly api: ModuleApi;
+    private api: ModuleApi;
     private initialized: boolean = false;
 
     constructor(props: any) {
@@ -190,7 +190,7 @@ export default class AdvancedMemoryGame extends React.Component<{}, {}> implemen
     // this method is called, once the component is ready and setState can be used
     componentDidMount(): void {
         if (!this.initialized) {
-            // Register event listers and/or prepared things you need when the view is ready to render via this.gameApi.addEventHandler()
+            // Register event listeners and/or prepared things you need when the view is ready to render via this.gameApi.addEventHandler()
             this.initialized = true;
         }
     }
