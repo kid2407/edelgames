@@ -1,0 +1,33 @@
+#memberList {
+  display: block;
+  margin-bottom: 15px;
+  margin-right: 15px;
+  padding-right: 15px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: fit-content;
+
+  .member-list-head {
+    padding: 0.5rem;
+    background: $primary;
+  }
+
+  .member-list-row {
+    display: flex;
+    padding: 0.5rem;
+    border: 1px solid #242526;
+    border-radius: 3px;
+    width: 100%;
+    margin-top: 0.5rem;
+
+    .profile-picture {
+
+    }
+
+    .member-data {
+      display: flex;
+      margin-top: 7px;
+    }
+  }
+}

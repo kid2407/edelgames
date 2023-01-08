@@ -4,7 +4,6 @@ import ModulePlayerApi from "./api/ModulePlayerApi";
 import ModuleEventApi from "./api/ModuleEventApi";
 import {Logger} from "../util/Logger";
 
-
 /*
  * This class will be passed to the game instance to allow for restricted access to data.
  * That way, a game cannot influence a room more than it is supposed to
