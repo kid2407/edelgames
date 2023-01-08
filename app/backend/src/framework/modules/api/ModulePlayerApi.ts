@@ -52,7 +52,11 @@ export default class ModulePlayerApi {
         return this.room.getRoomMaster();
     }
 
-    public getPlayerById(id: string): User|undefined {
+    public isRoomMaster(userId: string): boolean {
+        return this.room.getRoomMaster().getId() == userId;
+    }
+
+    public getPlayerById(id: string): User | undefined {
         return this.getRoomMembers().find(user => user.getId() === id);
     }
 

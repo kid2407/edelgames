@@ -1,3 +1,92 @@
 #poker {
-    // Add your styles in here
+    width: 100%;
+    position: relative;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+
+    img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .pokerTable {
+        background-color: #35654d;
+        border: 20px solid #1f2020;
+        width: 100%;
+        height: 100%;
+        margin-bottom: 80px;
+    }
+
+    .settingsOverlay {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: calc(100% - 40px);
+        height: calc(100% - 40px);
+        margin: 20px;
+        //background-color: #00000077;
+        display: flex;
+        justify-content: center;
+        padding: 19px;
+        border: 1px solid white;
+        //display: none;
+
+        .wrapper {
+            background-color: #000000aa;
+            padding: 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+
+            h2 {
+                text-align: center;
+                margin-top: unset;
+            }
+
+            form {
+                height: 100%;
+                overflow-y: auto;
+
+                fieldset {
+                    height: 100%;
+                    border: unset;
+                    position: relative;
+                    padding: 0;
+
+                    input {
+                        width: 100%;
+                    }
+
+                    > div {
+                        padding-bottom: 10px;
+                    }
+
+                    .row + .row {
+                        margin-top: 10px;
+                    }
+
+                    .row > * {
+                        display: block;
+                    }
+
+                    .row > label {
+                        margin-bottom: 5px;
+                    }
+
+                    button {
+                        position: absolute;
+                        bottom: 0;
+                        width: 100%;
+                    }
+
+                    @media (max-height: 692px) {
+                        button {
+                            position: relative;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

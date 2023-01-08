@@ -23,6 +23,10 @@ export default class ModulePlayerApi {
         return RoomManager.getRoomMaster() || undefined;
     }
 
+    public isRoomMaster(): boolean {
+        return RoomManager.getRoomMaster()?.getId() === ProfileManager.getId()
+    }
+
     public getLocalePlayer(): ProfileManagerType {
         return ProfileManager;
     }

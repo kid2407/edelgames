@@ -72,7 +72,7 @@ export default class ModuleEventApi {
         this.eventListeners[event] = [];
     }
 
-    public sendMessageToServer(messageTypeId: string, eventData: ({ [key: string]: any })): void {
+    public sendMessageToServer(messageTypeId: string, eventData: ({ [key: string]: any }) = {}): void {
         SocketManager.sendEvent('clientToServerGameMessage', {
             messageTypeId: this.api.getGameId() + '_' + messageTypeId,
             ...eventData
