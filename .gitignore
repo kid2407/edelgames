@@ -5,3 +5,5 @@ app/backend/node_modules
 app/frontend/node_modules
 
 .idea
+
+package-lock.json

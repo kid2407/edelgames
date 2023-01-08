@@ -1,9 +1,9 @@
 import React, {ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import ModuleGameApi from "../../framework/modules/ModuleGameApi";
 import exampleChat from "./ExampleChat";
 import User from "../../framework/util/User";
 import profileManager from "../../framework/util/ProfileManager";
+import ModuleApi from "../../framework/modules/ModuleApi";
 
 type messageObject = {
     receivedAt: Date | null;
@@ -17,7 +17,7 @@ interface IState {
 
 export default class ExampleChatGame extends React.Component<{}, IState> implements ModuleGameInterface {
 
-    private readonly gameApi: ModuleGameApi;
+    private readonly api: ModuleApi;
     private inputElement: HTMLInputElement | null = null;
     private systemUser: User = new User('00000000', 'system', null, false);
 
@@ -28,19 +28,19 @@ export default class ExampleChatGame extends React.Component<{}, IState> impleme
 
     constructor(props: any) {
         super(props);
-        this.gameApi = new ModuleGameApi(exampleChat, this);
+        this.api = new ModuleApi(exampleChat, this);
     }
 
     // this method is called, once the component is ready and setState can be used
     componentDidMount(): void {
-        this.gameApi.addEventHandler('serverMessageSend', this.onReceiveMessage.bind(this));
+        this.api.getEventApi().addEventHandler('serverMessageSend', this.onReceiveMessage.bind(this));
     }
 
     onSendMessage(): void {
         if (!this.inputElement || this.inputElement.value === '') return;
 
         // messages send by the gameApi are automatically assigned to this module and will not be interpreted by any other game
-        this.gameApi.sendMessageToServer('userMessageSend', {
+        this.api.getEventApi().sendMessageToServer('userMessageSend', {
             message: this.inputElement.value
         });
         this.inputElement.value = "";
@@ -70,7 +70,7 @@ export default class ExampleChatGame extends React.Component<{}, IState> impleme
     }
 
     renderChatMessage(data: messageObject, index: number): ReactNode {
-        let userData = data.senderId ? this.gameApi.getUserDataById(data.senderId) : this.systemUser;
+        let userData = data.senderId ? this.api.getPlayerApi().getPlayerById(data.senderId) : this.systemUser;
         let isOwnMessage = data.senderId === profileManager.getId();
 
         let messageClasses = 'chat-message';

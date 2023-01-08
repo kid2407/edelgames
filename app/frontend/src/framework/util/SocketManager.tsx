@@ -1,6 +1,7 @@
 import {io, Socket} from "socket.io-client";
-import debug from "./debug";
 import eventManager, {ListenerFunction} from "./EventManager";
+import {clientLogger} from "./Logger";
+import ProfileManager from "./ProfileManager";
 
 
 // helper constants don`t need a type, as it is recognized by the value
@@ -16,17 +17,24 @@ class SocketManager {
     constructor() {
         const PORT = process.env.REACT_APP_API_HTTP_PORT || 5000;
         const DOMAIN = process.env.REACT_APP_DOMAIN || "http://localhost";
-        debug('Starting connection using domain ', process.env, `Resultung in ${DOMAIN}:${PORT}`);
+        clientLogger.debug('Starting connection using domain ', process.env, `Resultung in ${DOMAIN}:${PORT}`);
 
         this.socket = io(DOMAIN + ":" + PORT);
         this.socket.on("connect", this.onConnectionStatusChanged.bind(this, true));
         this.socket.on("disconnect", this.onConnectionStatusChanged.bind(this, false));
         this.socket.on("connect_error", this.onConnectionStatusChanged.bind(this, false));
-        this.socket.io.on("reconnect", this.onConnectionStatusChanged.bind(this, true));
+        this.socket.io.on("reconnect", this.onReconnected.bind(this));
     }
 
     protected onConnectionStatusChanged(status: boolean): void {
         eventManager.publish(SocketEventNames.connectionStatusChanged, {connected: status});
+    }
+
+    protected onReconnected(): void {
+        this.onConnectionStatusChanged(true);
+        if(!ProfileManager.isVerified()) {
+            ProfileManager.attemptAutomaticAuthLogin();
+        }
     }
 
     public isConnected(): boolean {
@@ -38,12 +46,12 @@ class SocketManager {
     }
 
     public sendEvent(eventName: string, data: object): void {
-        debug(`Sending event ${eventName} with `, data);
+        clientLogger.debug(`Sending event ${eventName} with `, data.hasOwnProperty("password") ? 'data' : data);
         this.socket.emit(eventName, data);
     }
 
     public subscribeEvent(eventName: string, listener: ListenerFunction): void {
-        debug(`Subscribing event ${eventName} with `, listener);
+        clientLogger.debug(`Subscribing event ${eventName} with `, listener);
         this.socket.on(eventName, listener);
     }
 }

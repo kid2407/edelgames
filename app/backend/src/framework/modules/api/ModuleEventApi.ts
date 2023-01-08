@@ -1,45 +1,29 @@
-import Room from "../Room";
-import SocketManager from "../util/SocketManager";
-import ModuleGameInterface from "./ModuleGameInterface";
-import debug from "../util/debug";
+import ModuleApi from "../ModuleApi";
+import SocketManager from "../../util/SocketManager";
 
-type internalEventDataObject = {
+export type EventDataObject = {
     [key: string]: any
 }
-type internalEventHandlerFunction = (eventData: internalEventDataObject | null) => void;
+type internalEventHandlerFunction = (eventData: EventDataObject | null) => void;
 type internalEventList = {
     [key: string]: internalEventHandlerFunction[]
 }
 
-/*
- * This class will be passed to the game instance to allow for restricted access to the room data.
- * That way, a game cannot influence a room more than it is supposed to
- */
-export default class ModuleRoomApi {
+export default class ModuleEventApi {
 
-    private readonly game: ModuleGameInterface;
-    private readonly room: Room;
-    private readonly gameId: string;
+    private readonly moduleApi: ModuleApi;
     private eventListeners: internalEventList = {};
 
-    constructor(gameId: string, game: ModuleGameInterface, room: Room) {
-        this.game = game;
-        this.gameId = gameId;
-        this.room = room;
-        this.room.setCurrentGame(this);
-        game.onGameInitialize(this);
-    }
-
-    public getGameId(): string {
-        return this.gameId;
+    constructor(moduleApi: ModuleApi) {
+        this.moduleApi = moduleApi;
     }
 
     /*
      * This method will be called automatically, every time an event is triggered.
      * It can also be used to manage internal events for the current game
      */
-    public alertEvent(eventName: string, eventData: internalEventDataObject = null, skipPrefix: boolean = false): void {
-        let event = skipPrefix ? eventName : this.getGameId() + '_' + eventName;
+    public alertEvent(eventName: string, eventData: EventDataObject = null, skipPrefix: boolean = false): void {
+        let event = skipPrefix ? eventName : this.moduleApi.getGameId() + '_' + eventName;
         if (this.eventListeners[event]) {
             for (let listener of this.eventListeners[event]) {
                 listener(eventData);
@@ -48,13 +32,13 @@ export default class ModuleRoomApi {
     }
 
     public addEventHandler(eventName: string, handler: internalEventHandlerFunction): void {
-        let event = this.getGameId() + '_' + eventName;
+        let event = this.moduleApi.getGameId() + '_' + eventName;
         if (!this.eventListeners[event]) {
             this.eventListeners[event] = [];
         }
         this.eventListeners[event].push(handler);
 
-        debug(1, 'registering eventlistener for ' + event);
+        this.moduleApi.getLogger().info('registering event listener for ' + event);
     }
 
     // just an alias for addEventHandler('userJoined', handler) for better usability
@@ -73,25 +57,24 @@ export default class ModuleRoomApi {
     }
 
     public sendRoomMessage(eventName: string, eventData: ({ [key: string]: any })): void {
-        let event = this.getGameId() + '_' + eventName;
-        SocketManager.broadcast(this.room.getRoomId(), 'ServerToClientGameMessage', {
+        let event = this.moduleApi.getGameId() + '_' + eventName;
+        SocketManager.broadcast(this.moduleApi.getPlayerApi().getRoom().getRoomId(), 'ServerToClientGameMessage', {
             messageTypeId: event,
             ...eventData
         });
     }
 
     public sendPlayerMessage(playerId: string, eventName: string, eventData: ({ [key: string]: any })): void {
-        let event = this.getGameId() + '_' + eventName;
-        let user = this.room.getRoomMembers().find(user => user.getId() === playerId);
+        let event = this.moduleApi.getGameId() + '_' + eventName;
+        let user = this.moduleApi.getPlayerApi().getRoomMembers().find(user => user.getId() === playerId);
         SocketManager.directMessageToSocket(user.getSocket(), 'ServerToClientGameMessage', {
             messageTypeId: event,
             ...eventData
         });
     }
 
-    // this will cancel / stop / end the current game instance and return the members back to the game select (idle) room
-    public cancelGame(): void {
-        this.room.setCurrentGame(null);
+    public sendPlayerBubble(playerId: string, message: string, type: 'info' | 'error' | 'success' | 'warning' = 'info'): void {
+        let user = this.moduleApi.getPlayerApi().getRoomMembers().find(user => user.getId() === playerId);
+        SocketManager.sendNotificationBubbleToSocket(user.getSocket(), message, type);
     }
-
 }

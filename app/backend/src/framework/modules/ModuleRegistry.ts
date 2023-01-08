@@ -1,8 +1,8 @@
 import ModuleInterface from "./ModuleInterface";
 import ModuleList from "../../modules/ModuleList";
 import Room from "../Room";
-import ModuleRoomApi from "./ModuleRoomApi";
-import debug from "../util/debug";
+import {systemLogger} from "../util/Logger";
+import ModuleApi from "./ModuleApi";
 
 
 class ModuleRegistry {
@@ -19,15 +19,14 @@ class ModuleRegistry {
         let module = this.getModuleById(gameId);
 
         if (!module) {
-            debug(1, `Failed to start game with id ${gameId} for room ${room.getRoomId()}`);
+            systemLogger.warning( `Failed to start game with id ${gameId} for room ${room.getRoomId()}`);
             return;
         }
 
         let gameInstance = module.getGameInstance();
-        // create the module API -> it will be automatically passed to the game instance
-        new ModuleRoomApi(gameId, gameInstance, room);
+        let moduleApi = new ModuleApi(gameId, gameInstance, room);
+        gameInstance.onGameInitialize(moduleApi)
     }
-
 }
 
 

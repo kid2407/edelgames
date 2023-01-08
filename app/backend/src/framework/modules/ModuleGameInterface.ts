@@ -1,8 +1,8 @@
-import ModuleRoomApi from "./ModuleRoomApi";
+import ModuleApi from "./ModuleApi";
 
 
 export default interface ModuleGameInterface {
 
-    onGameInitialize(roomApi: ModuleRoomApi): void;
+    onGameInitialize(roomApi: ModuleApi): void;
 
 }
