@@ -11,7 +11,6 @@ import {EventDataObject} from "../../framework/util/EventManager";
 import DrawingUtils from "./Components/DrawingUtils";
 import ProfileManager from "../../framework/util/ProfileManager";
 import RoomManager from "../../framework/util/RoomManager";
-import User from "../../framework/util/User";
 import ChatBox, {DAGChatMessage} from "./Components/ChatBox";
 import GameStateBox from "./Components/GameStateBox";
 import GameConfig, {GameConfigObject} from "./Components/GameConfig";
@@ -269,21 +268,6 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
     /* Render Methods */
     /* ============== */
 
-    renderPlayerListElement(user: User): JSX.Element {
-        let isActivePlayer = this.state.activePlayerId === user.getId();
-        let points = this.scoreboard[user.getId()] || 0;
-
-        return (
-            <div key={user.getId() + points}
-                 className={"player-list-element"}>
-                <span className={"player-name"}>{user.getUsername()}</span>
-                <span className={"player-state"}>{isActivePlayer ? '[d]' : ''}</span>
-                <span className={"player-points"}>{points}</span>
-            </div>
-        );
-    }
-
-
     renderDrawingBoardSpace(allowDrawing: boolean, isUserRoomMaster: boolean, isActivePlayer: boolean): JSX.Element {
         let state = this.state.currentGameState;
 
@@ -328,11 +312,6 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
 
         return (
             <div id={"drawAndGuess"} key={"drawAndGuess"}>
-                <div className={"player-list"}>
-                    <div>
-                        {this.api.getPlayerApi().getPlayers().map(this.renderPlayerListElement.bind(this))}
-                    </div>
-                </div>
                 <div className={"drawing-board"}>
                     {this.renderDrawingBoardSpace(allowDrawing, isUserRoomMaster, isActivePlayer)}
 
