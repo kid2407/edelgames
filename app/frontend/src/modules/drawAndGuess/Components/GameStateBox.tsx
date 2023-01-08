@@ -1,5 +1,4 @@
-import React, {Component, createRef, RefObject} from "react";
-import RoomManager from "../../../framework/util/RoomManager";
+import React, {Component} from "react";
 
 
 interface IProps {
@@ -7,11 +6,6 @@ interface IProps {
     wordMask: string|null,
     countdownUntil: number|null;
 }
-
-interface IState {
-    timer: number
-}
-
 export default class GameStateBox extends Component<IProps,{}> {
 
     state = {
