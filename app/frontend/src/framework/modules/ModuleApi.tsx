@@ -1,13 +1,8 @@
 import ModuleGameInterface from "./ModuleGameInterface";
-import SocketManager from "../util/SocketManager";
 import ModuleInterface from "./ModuleInterface";
-import EventManager from "../util/EventManager";
-import RoomManager from "../util/RoomManager";
-import User from "../util/User";
 import ModulePlayerApi from "./api/ModulePlayerApi";
 import ModuleEventApi from "./api/ModuleEventApi";
 import {Logger} from "../util/Logger";
-import exampleChat from "../../modules/exampleChat/ExampleChat";
 
 
 /*
