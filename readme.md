@@ -85,7 +85,7 @@ class AdvancedMemory implements ModuleInterface {
     }
 
     getGameInstance(): ModuleGameInterface {
-        return new AdvancedMemoryGame(this.getUniqueId());
+        return new AdvancedMemoryGame();
     }
 
 }
@@ -98,19 +98,21 @@ export default advancedMemory;
 
 ```typescript
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
-import ModuleLogger from "../../framework/modules/ModuleLogger";
+import ModuleApi from "../../framework/modules/ModuleApi";
 
 /*
  * The actual game instance, that controls and manages the game
  */
-export default class AdvancedMemoryGame extends ModuleLogger implements ModuleGameInterface {
+export default class AdvancedMemoryGame implements ModuleGameInterface {
 
-    roomApi: ModuleRoomApi = null;
+    private readonly api: ModuleApi;
 
-    onGameInitialize(roomApi: ModuleRoomApi): void {
-        this.roomApi = roomApi;
-        // Add event listeners you want to listen to here with this.roomApi.addEventHandler()
+    onGameInitialize(api: ModuleApi): void {
+        this.api = api;
+        
+        // Add event listeners you want to listen to here with this.api.getEventApi().addEventHandler()
+        
+        this.api.getLogger().debug('Initialized game of advanced memory');
     }
 
 }
@@ -172,18 +174,17 @@ export default advancedMemory;
 ```typescript jsx
 import React, {ReactNode} from "react";
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import ModuleGameApi from "../../framework/modules/ModuleGameApi";
+import ModuleApi from "../../framework/modules/ModuleApi";
 import advancedMemory from "./AdvancedMemory";
-import {Logger} from "../../framework/util/Logger";
 
 export default class AdvancedMemoryGame extends React.Component<{}, {}> implements ModuleGameInterface {
 
-    private readonly gameApi: ModuleGameApi;
+    private readonly api: ModuleApi;
     private initialized: boolean = false;
 
     constructor(props: any) {
         super(props);
-        this.gameApi = new ModuleGameApi(advancedMemory, this);
+        this.api = new ModuleApi(advancedMemory, this);
     }
 
     // this method is called, once the component is ready and setState can be used
@@ -201,9 +202,6 @@ export default class AdvancedMemoryGame extends React.Component<{}, {}> implemen
             </div>
         );
     }
-
-    logger: Logger = new Logger(advancedMemory.getUniqueId());
-
 }
 ```
 
@@ -220,3 +218,4 @@ A preview image to be show in the game selection screen - use whatever image you
 <hr>
 
 Now add the exported game instance (`advancedMemory`) to the list of modules contained in `app/frontend/src/modules/ModuleList.tsx`
+And the path to your main scss file (`Advancedmemory.scss`) to the scss file in `app/frontend/src/modules/Modules.scss`
