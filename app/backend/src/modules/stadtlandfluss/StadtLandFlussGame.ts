@@ -1,14 +1,14 @@
 import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
-import ModuleRoomApi from "../../framework/modules/ModuleRoomApi";
 import User from "../../framework/User";
 import {gameState} from "./SLFTypes";
-import ModuleLogger from "../../framework/modules/ModuleLogger";
+import ModuleApi from "../../framework/modules/ModuleApi";
 
 /**
  * Main class for the Stadt Land Fluss game.
  */
-export default class StadtLandFlussGame extends ModuleLogger implements ModuleGameInterface {
-    roomApi: ModuleRoomApi;
+export default class StadtLandFlussGame implements ModuleGameInterface {
+
+    api: ModuleApi;
     gameState: gameState | null = null
 
     /**
@@ -57,24 +57,24 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
     /**
      * Register the relevant event handlers and set up the initial player list.
      *
-     * @param {ModuleRoomApi} roomApi
+     * @param {ModuleApi} api
      */
-    onGameInitialize(roomApi: ModuleRoomApi): void {
-        this.roomApi = roomApi;
-        this.roomApi.addEventHandler("returnToGameSelection", this.onReturnToGameSelection.bind(this))
-        this.roomApi.addEventHandler("updateSettings", this.onUpdateSettings.bind(this))
-        this.roomApi.addEventHandler("startGame", this.onStartGame.bind(this))
-        this.roomApi.addEventHandler("nextRound", this.onNextRound.bind(this))
-        this.roomApi.addEventHandler("updateGuesses", this.onUpdateGuesses.bind(this))
-        this.roomApi.addEventHandler("requestGameState", this.onRequestGameState.bind(this))
-        this.roomApi.addEventHandler("unready", this.onUnready.bind(this))
-        this.roomApi.addEventHandler("playAgain", this.onPlayAgain.bind(this))
-        this.roomApi.addEventHandler("setDownvote", this.onToggleDownvote.bind(this))
+    onGameInitialize(api: ModuleApi): void {
+        this.api = api;
+        this.api.getEventApi().addEventHandler("returnToGameSelection", this.onReturnToGameSelection.bind(this))
+        this.api.getEventApi().addEventHandler("updateSettings", this.onUpdateSettings.bind(this))
+        this.api.getEventApi().addEventHandler("startGame", this.onStartGame.bind(this))
+        this.api.getEventApi().addEventHandler("nextRound", this.onNextRound.bind(this))
+        this.api.getEventApi().addEventHandler("updateGuesses", this.onUpdateGuesses.bind(this))
+        this.api.getEventApi().addEventHandler("requestGameState", this.onRequestGameState.bind(this))
+        this.api.getEventApi().addEventHandler("unready", this.onUnready.bind(this))
+        this.api.getEventApi().addEventHandler("playAgain", this.onPlayAgain.bind(this))
+        this.api.getEventApi().addEventHandler("setDownvote", this.onToggleDownvote.bind(this))
 
-        this.roomApi.addUserJoinedHandler(this.onUserJoin.bind(this))
-        this.roomApi.addUserLeaveHandler(this.onUserLeave.bind(this))
+        this.api.getEventApi().addUserJoinedHandler(this.onUserJoin.bind(this))
+        this.api.getEventApi().addUserLeaveHandler(this.onUserLeave.bind(this))
         this.gameState = {...this.initialGameState}
-        for (let roomMember of this.roomApi.getRoomMembers()) {
+        for (let roomMember of this.api.getPlayerApi().getRoomMembers()) {
             this.gameState.players[roomMember.getId()] = roomMember
         }
     }
@@ -84,7 +84,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
      * Cancel the game and return to the game selection screen.
      */
     private onReturnToGameSelection() {
-        this.roomApi.cancelGame()
+        this.api.cancelGame()
     }
 
     /**
@@ -107,11 +107,11 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
             point_overrides: state.point_overrides
         }
 
-        this.logger.debug("sending new game state:", toPublish)
+        this.api.getLogger().debug("sending new game state:", toPublish)
         if (user !== null) {
-            this.roomApi.sendPlayerMessage(user, "updateGameState", toPublish)
+            this.api.getPlayerApi().sendPlayerMessage(user, "updateGameState", toPublish)
         } else {
-            this.roomApi.sendRoomMessage("updateGameState", toPublish)
+            this.api.getPlayerApi().sendRoomMessage("updateGameState", toPublish)
         }
     }
 
@@ -194,11 +194,11 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
      */
     private onUserJoin(eventData: { newUser: User, userList: Array<{ username: string, id: string, picture: string | null, isRoomMaster: boolean }> }): void {
         let user = eventData.newUser
-        this.logger.debug(`User ${user.getId()} joined Stadt Land Fluss in room ${this.roomApi.getGameId()}.`)
+        this.api.getLogger().debug(`User ${user.getId()} joined Stadt Land Fluss in room ${this.api.getGameId()}.`)
         if (!this.gameState.active && !(user.getId() in this.gameState.players)) {
             this.gameState.players[user.getId()] = user
             this.publishGameState()
-            this.logger.debug(`Added user ${user.getId()} (${user.getUsername()}) to the player list since the game is not active.`)
+            this.api.getLogger().debug(`Added user ${user.getId()} (${user.getUsername()}) to the player list since the game is not active.`)
         }
     }
 
@@ -209,7 +209,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
      */
     private onUserLeave(eventData: { removedUser: User, userList: object[] }): void {
         let user = eventData.removedUser
-        this.logger.debug(`User ${user.getId()} left the Stadt Land Fluss room ${user.getCurrentRoom().getRoomId()}.`)
+        this.api.getLogger().debug(`User ${user.getId()} left the Stadt Land Fluss room ${user.getCurrentRoom().getRoomId()}.`)
         if (user.getId() in this.gameState.players) {
             delete this.gameState.players[user.getId()]
             this.gameState.ready_users = this.gameState.ready_users.filter(id => id !== user.getId())
@@ -219,7 +219,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
             this.gameState.points[this.gameState.letter] = this.calculatePointsForRound()
 
             this.publishGameState()
-            this.logger.debug(`Removed ${user.getId()} (${user.getUsername()}) from the player list since they were in it.`)
+            this.api.getLogger().debug(`Removed ${user.getId()} (${user.getUsername()}) from the player list since they were in it.`)
         }
     }
 
@@ -229,7 +229,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
      * @param {{ senderId: string, rounds: number, categories: string[] }} newConfig
      */
     private onUpdateSettings(newConfig: { senderId: string, rounds: number, categories: string[] }): void {
-        if (this.roomApi.getRoomMaster().getId() === newConfig.senderId) {
+        if (this.api.getPlayerApi().getRoomMaster().getId() === newConfig.senderId) {
             if (newConfig.rounds > 26) {
                 newConfig.rounds = 26
             }
@@ -244,7 +244,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
      * @param {{ senderId: string }} eventData
      */
     private onStartGame(eventData: { senderId: string }): void {
-        if (this.roomApi.getRoomMaster().getId() === eventData.senderId) {
+        if (this.api.getPlayerApi().getRoomMaster().getId() === eventData.senderId) {
             this.gameState.active = true
             this.gameState.gamePhase = this.gamePhases.GUESSING
             this.onNextRound(eventData)
@@ -257,13 +257,13 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
      * @param {{ senderId: string }} eventData
      */
     private onNextRound(eventData: { senderId: string }): void {
-        if (this.roomApi.getRoomMaster().getId() === eventData.senderId) {
+        if (this.api.getPlayerApi().getRoomMaster().getId() === eventData.senderId) {
             if (this.gameState.round < this.gameState.config.rounds) {
                 this.gameState.round += 1
                 this.gameState.letter = this.getRandomLetter()
                 this.gameState.gamePhase = this.gamePhases.GUESSING
 
-                for (let roomMember of this.roomApi.getRoomMembers()) {
+                for (let roomMember of this.api.getPlayerApi().getRoomMembers()) {
                     this.gameState.players[roomMember.getId()] = roomMember
                 }
             } else {
@@ -295,7 +295,7 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
             this.gameState.gamePhase = this.gamePhases.ROUND_RESULTS
             this.gameState.ready_users = []
             this.gameState.points[this.gameState.letter] = this.calculatePointsForRound()
-            this.logger.debug("Switching to round results.")
+            this.api.getLogger().debug("Switching to round results.")
         }
 
         this.publishGameState()
@@ -316,11 +316,11 @@ export default class StadtLandFlussGame extends ModuleLogger implements ModuleGa
      * @param {{ senderId: string }} eventData
      */
     private onPlayAgain(eventData: { senderId: string }): void {
-        if (this.roomApi.getRoomMaster().getId() === eventData.senderId) {
+        if (this.api.getPlayerApi().getRoomMaster().getId() === eventData.senderId) {
             let newState = Object.create(this.initialGameState)
             newState.config = this.gameState.config
 
-            for (let roomMember of this.roomApi.getRoomMembers()) {
+            for (let roomMember of this.api.getPlayerApi().getRoomMembers()) {
                 newState.players[roomMember.getId()] = roomMember
             }
 

@@ -1,6 +1,4 @@
 import {Component, ReactNode} from "react";
-import roomManager from "../../../framework/util/RoomManager";
-import profileManager from "../../../framework/util/ProfileManager";
 import {RoundResultProps} from "../SLFTypes";
 
 /**
@@ -12,7 +10,7 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
      * Start the next round.
      */
     private onNextRound(): void {
-        this.props.gameApi.sendMessageToServer("nextRound", {})
+        this.props.gameApi.getEventApi().sendMessageToServer("nextRound", {})
     }
 
     /**
@@ -52,12 +50,15 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                 button.classList.add("active")
             }
 
-            this.props.gameApi.sendMessageToServer("setDownvote", {userId: userId, categoryIndex: categoryIndex, isActive: newState})
+            this.props.gameApi.getEventApi().sendMessageToServer("setDownvote", {userId: userId, categoryIndex: categoryIndex, isActive: newState})
         }
     }
 
     private showDownvoteButton(userId: string, categoryIndex: number): boolean {
-        return userId !== profileManager.getId() && (this.props.points[this.props.letter]?.[categoryIndex]?.[userId] > 0 || this.props.point_overrides[userId]?.[categoryIndex]?.length === Object.keys(this.props.players).length - 1)
+        let userPoints = this.props.points[this.props.letter]?.[categoryIndex]?.[userId];
+
+        return userId !== this.props.gameApi.getPlayerApi().getLocalePlayer().getId()
+            && (userPoints > 0 || this.props.point_overrides[userId]?.[categoryIndex]?.length === Object.keys(this.props.players).length - 1)
     }
 
     /**
@@ -72,7 +73,7 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                     <thead>
                     <tr>
                         <th>Kategorie</th>
-                        {this.props.players.map(p => <th>{roomManager.getRoomMembers().find(u => u.getId() === p)?.getUsername()}</th>)}
+                        {this.props.players.map(p => <th>{this.props.gameApi.getPlayerApi().getPlayerById(p)?.getUsername()}</th>)}
                     </tr>
                     </thead>
                     <tbody>
@@ -83,7 +84,7 @@ export default class SLFRoundResults extends Component<RoundResultProps, {}> {
                                 {this.props.guesses[id]?.[this.props.letter]?.[i]}&nbsp;
                                 {this.showDownvoteButton(id, i) ?
                                     <button id={`toggleDownvote_${id}_${i}`}
-                                            className={"downvoteButton" + (this.props.point_overrides[id]?.[i]?.includes(profileManager.getId()) ? " active" : "")}
+                                            className={"downvoteButton" + (this.props.point_overrides[id]?.[i]?.includes(this.props.gameApi.getPlayerApi().getLocalePlayer().getId()) ? " active" : "")}
                                             onClick={this.toggleDownvote.bind(this, id, i)}>Downvote ({this.props.point_overrides[id]?.[i]?.length ?? 0}/{this.props.players.length - 1})
                                     </button> : ""}
                             </td>

@@ -1,8 +1,8 @@
 import ModuleInterface from "./ModuleInterface";
 import ModuleList from "../../modules/ModuleList";
 import Room from "../Room";
-import ModuleRoomApi from "./ModuleRoomApi";
 import {systemLogger} from "../util/Logger";
+import ModuleApi from "./ModuleApi";
 
 
 class ModuleRegistry {
@@ -24,10 +24,9 @@ class ModuleRegistry {
         }
 
         let gameInstance = module.getGameInstance();
-        // create the module API -> it will be automatically passed to the game instance
-        new ModuleRoomApi(gameId, gameInstance, room);
+        let moduleApi = new ModuleApi(gameId, gameInstance, room);
+        gameInstance.onGameInitialize(moduleApi)
     }
-
 }
 
 

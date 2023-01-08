@@ -4,6 +4,7 @@ import preview from './preview.png'
 import StadtLandFlussGame from "./StadtLandFlussGame";
 
 class StadtLandFluss implements ModuleInterface {
+
     getPreviewImage(): string | undefined {
         return preview;
     }

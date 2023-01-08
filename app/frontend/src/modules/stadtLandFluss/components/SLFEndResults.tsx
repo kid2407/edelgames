@@ -1,5 +1,4 @@
 import {Component} from "react";
-import roomManager from "../../../framework/util/RoomManager";
 import {EndResultProps} from "../SLFTypes";
 
 /**
@@ -11,8 +10,8 @@ export default class SLFEndResults extends Component<EndResultProps, {}> {
      * Calculate the sorted and grouped data for the end results.
      */
     private getEndResultData(): { place: number, userId: string, username: string, points: number }[] {
-        let roomMembers = roomManager.getRoomMembers()
-        let finalData: { [userId: string]: { place: number, userId: string, username: string, points: number } } = {}
+        let roomMembers = this.props.gameApi.getPlayerApi().getPlayers();
+        let finalData: { [userId: string]: { place: number, userId: string, username: string, points: number } } = {};
 
         Object.values(this.props.points).forEach(value => Object.values(value).forEach(data => {
             for (let [userId, points] of Object.entries(data)) {
@@ -36,7 +35,7 @@ export default class SLFEndResults extends Component<EndResultProps, {}> {
      * Restart the game.
      */
     private restartGame() {
-        this.props.gameApi.sendMessageToServer("playAgain", {})
+        this.props.gameApi.getEventApi().sendMessageToServer("playAgain", {})
     }
 
     /**

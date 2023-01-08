@@ -3,8 +3,9 @@ import ModuleGameInterface from "../../framework/modules/ModuleGameInterface";
 import StadtLandFlussGame from "./StadtLandFlussGame";
 
 class StadtLandFluss implements ModuleInterface {
+
     getGameInstance(): ModuleGameInterface {
-        return new StadtLandFlussGame(this.getUniqueId());
+        return new StadtLandFlussGame();
     }
 
     getUniqueId(): string {
