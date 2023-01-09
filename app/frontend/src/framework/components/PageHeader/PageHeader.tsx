@@ -2,18 +2,21 @@ import profileManager, {ProfileEventNames} from "../../util/ProfileManager";
 import ProfileImage from "../ProfileImage/ProfileImage";
 import LoginWindow from "../LoginWindow/LoginWindow";
 import eventManager from "../../util/EventManager";
-import socketManager from "../../util/SocketManager";
-import roomManager, {RoomEventNames} from "../../util/RoomManager";
+import roomManager from "../../util/RoomManager";
 import React, {ReactNode} from "react";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import RoomActionPanel from "./RoomActionPanel";
 
 type IState = {
-    showLoginWindow: boolean
+    showLoginWindow: boolean,
+    showRoomActionWindow: boolean
 }
 
 export default class PageHeader extends React.Component<{}, IState> {
 
     state = {
-        showLoginWindow: false
+        showLoginWindow: false,
+        showRoomActionWindow: false
     };
 
     constructor(props: object) {
@@ -38,8 +41,29 @@ export default class PageHeader extends React.Component<{}, IState> {
         });
     }
 
-    leaveRoom(): void {
-        socketManager.sendEvent(RoomEventNames.returnToLobby, {});
+    toggleRoomActionPanel(): void {
+        this.setState({
+            showRoomActionWindow: !this.state.showRoomActionWindow
+        });
+    }
+
+    renderRoomData(): ReactNode {
+        return (
+            <div className={"room-data"}>
+
+                <div className={"room-name"}>
+                    {roomManager.getRoomName()}
+                </div>
+
+                <div className={"room-actions"}>
+                    <FontAwesomeIcon icon={['fad', 'circle-chevron-down']} size="1x" onClick={this.toggleRoomActionPanel.bind(this)} />
+                </div>
+
+                {this.state.showRoomActionWindow ?
+                    <RoomActionPanel panelRemoteCloseCallback={this.toggleRoomActionPanel.bind(this)}/>
+                    : null }
+            </div>
+        );
     }
 
     render(): ReactNode {
@@ -62,10 +86,8 @@ export default class PageHeader extends React.Component<{}, IState> {
                 </div>
 
                 <div className="text-align-center">
-                    Room: {roomManager.getRoomName()}
                     {
-                        (roomManager.getRoomId() === 'lobby') ? null :
-                            <button className="secondary" onClick={this.leaveRoom.bind(this)}>Raum verlassen</button>
+                        (roomManager.getRoomId() === 'lobby') ? null : this.renderRoomData()
                     }
                 </div>
 

@@ -4,6 +4,7 @@ import roomManager, {RoomEventNames} from "../../util/RoomManager";
 import User from "../../util/User";
 import profileManager from "../../util/ProfileManager";
 import eventManager from "../../util/EventManager";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 
 interface IProps {
     renderMemberFunction?: {(member: User): JSX.Element}
@@ -56,7 +57,10 @@ export default class PlayerList extends React.Component<IProps, {}> {
             <div className="member-data">
                 <span className="member-name">{member.getUsername()}</span>
                 {(isLocaleUser ? <span>&nbsp;(You)</span> : null)}
-                {(member.isRoomMaster() ? <span className="signature-text">&nbsp;A</span> : null)}
+                {(member.isRoomMaster() ?
+                    <span className="error-text">&nbsp;
+                        <FontAwesomeIcon icon={['fad', 'crown']} size="1x" title={"Dungeonmaster"} />
+                    </span> : null)}
             </div>
         );
     }
