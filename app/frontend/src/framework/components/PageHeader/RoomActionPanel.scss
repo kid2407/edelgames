@@ -1,0 +1,61 @@
+.room-actions-panel {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  min-width: 30rem;
+  max-width: 90vw;
+  background: $backgroundDark;
+  z-index: 10;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1rem;
+
+  .room-actions-move {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .room-admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .room-return-to-selection {
+      display: flex;
+    }
+
+    .room-edit-password,
+    .room-edit-name {
+      display: flex;
+
+      span {
+        padding: 0.25rem 0.5rem;
+        text-align: left;
+        min-width: 10rem;
+
+        &.password-inactive {
+          width: 15rem;
+          background: $background;
+        }
+      }
+
+      input {
+        border: none;
+        padding: 0.25rem 0.5rem;
+        font-size: 1em;
+        font-family: $font-family;
+        width: 15rem;
+        background-color: $backgroundLight;
+        color: $white;
+      }
+
+      svg {
+        padding: 0.25rem 0.5rem;
+      }
+    }
+  }
+}

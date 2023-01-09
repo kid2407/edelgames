@@ -16,6 +16,7 @@ import GameStateBox from "./Components/GameStateBox";
 import GameConfig, {GameConfigObject} from "./Components/GameConfig";
 import WordSelection from "./Components/WordSelection";
 import ModuleApi from "../../framework/modules/ModuleApi";
+import PlayerList from "../../framework/components/PlayerList/PlayerList";
 
 interface IState {
     currentMode: string,
@@ -312,6 +313,8 @@ export default class DrawAndGuessGame extends React.Component<{}, IState> implem
 
         return (
             <div id={"drawAndGuess"} key={"drawAndGuess"}>
+                <PlayerList />
+
                 <div className={"drawing-board"}>
                     {this.renderDrawingBoardSpace(allowDrawing, isUserRoomMaster, isActivePlayer)}
 

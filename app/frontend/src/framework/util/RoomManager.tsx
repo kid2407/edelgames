@@ -10,7 +10,10 @@ export const RoomEventNames = {
     roomUpdated: "roomUpdated",
     returnToLobby: "returnToLobby",
     createNewRoom: "createNewRoom",
-    joinRoom: "joinRoom"
+    joinRoom: "joinRoom",
+    returnToGameSelection: "returnToGameSelection",
+    changeRoomName: "changeRoomName",
+    changeRoomPass: "changeRoomPass",
 }
 
 export type ServerRoomMember = {
@@ -23,6 +26,7 @@ export type ServerRoomMember = {
 type ServerRoomObject = {
     roomId: string;
     roomName: string;
+    requiredPassphrase: boolean;
     roomMembers: ServerRoomMember[];
     currentGameId: string;
 }
@@ -32,6 +36,7 @@ class RoomManager {
 
     private roomId: string = 'lobby';
     private roomName: string = 'Lobby';
+    private roomPassword: string|undefined = undefined;
     private roomMembers: User[] = [];
     private roomMaster: User | null = null;
     private currentGameId: string = '';
@@ -46,6 +51,7 @@ class RoomManager {
         this.roomId = data.roomId;
         this.roomName = data.roomName;
         this.currentGameId = data.currentGameId;
+        if(!data.requirePassphrase) this.roomPassword = undefined;
 
         // calculate new room members
         let roomMembers: User[] = [];
@@ -74,6 +80,18 @@ class RoomManager {
 
     public getRoomName(): string {
         return this.roomName;
+    }
+
+    public setRoomName(name: string): void {
+        this.roomName = name;
+    }
+
+    public getRoomPassword(): string|undefined {
+        return this.roomPassword;
+    }
+
+    public setRoomPassword(password: string|undefined): void {
+        this.roomPassword = password;
     }
 
     public getRoomMembers(): User[] {

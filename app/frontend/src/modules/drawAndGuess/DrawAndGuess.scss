@@ -1,23 +1,6 @@
 #drawAndGuess {
   display: flex;
-
-  .player-list {
-    flex: 1 1 auto;
-    min-width: 12rem;
-    padding-right: 0.5rem;
-
-    .player-list-element {
-      padding: 0.5rem 0;
-      display: flex;
-      justify-content: space-between;
-
-      .player-name {}
-      .player-state {
-        margin: 0 0.5rem;
-      }
-      .player-points {}
-    }
-  }
+  width: 100%;
 
   .drawing-board {
     flex: 0 0 700px;

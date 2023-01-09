@@ -24,7 +24,6 @@ export default class Controller {
         Controller.connectedUsers++;
         systemLogger.debug(`user ${user.getId()} (socket ${socket.id}) connected! (${Controller.connectedUsers} users in total)`);
 
-
         // switch user into lobby
         roomManager.getLobbyRoom().joinRoom(user);
     }

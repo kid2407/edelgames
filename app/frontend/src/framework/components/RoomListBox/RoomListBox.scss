@@ -12,6 +12,14 @@
     .room-overview-box--room-data {
       background-color: rgba($white, 0.2);
       padding: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+
+      .text-align-left {
+        svg {
+          margin: 0 2.5rem 0 0.5rem;
+        }
+      }
 
       .room-join-button {
         cursor: pointer;
@@ -53,8 +61,8 @@
       .room-overview-box--member-list {
         align-items: center;
         justify-content: center;
-        font-size: 3rem;
         cursor: pointer;
+        padding: 1rem;
       }
     }
   }
