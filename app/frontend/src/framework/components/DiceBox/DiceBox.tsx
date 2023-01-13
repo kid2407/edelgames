@@ -5,8 +5,10 @@ interface IProps {
     rollIndex: number, // if this changed, the dices should be updated with an animation (dont change it for a slow turn)
     nextRollResults: number[], // determines the value of the dices
     diceToRollMask?: boolean[], // determines which of the dices should roll
+    highlightColors?: (string|undefined)[], // determines if and which backdrop color each dice should have
     onEveryDiceRolled?: {(): void} // triggered once for every rolled dice
     onDicesRolled?: {(): void} // triggered once, when any dices changed
+    onDicesClicked?: {(diceId: number): void} // triggered once, when any dices is clicked
 }
 
 // massive credit and thank you for this incredible dice roll WITH PLAIN CSS and as little JavaScript as imaginable
@@ -49,9 +51,12 @@ export default class DiceBox extends Component<IProps, {}> {
     renderDice(el: undefined, index: number): JSX.Element {
         return (
             <Dice key={index}
+                  id={index}
                   nextRollResult={this.props.nextRollResults[index]}
                   onDiceRolled={this.props.onEveryDiceRolled?.bind(index)}
                   rollCount={this.numberOfRollsPerDice[index]||0}
+                  onDiceClicked={this.props.onDicesClicked}
+                  backdropColor={this.props.highlightColors ? this.props.highlightColors[index] : undefined}
             />
         );
     }

@@ -6,18 +6,27 @@ export default class Lobby extends React.Component {
 
     state = {
         results: [1,1,1],
+        dicesToShuffle: [true,true,true],
         rollIndex: 0
     }
 
 
-    setNewResult(): void {
-        let newResults: number[] = [...Array(3)].map(() => Math.floor(Math.random()*6)+1);
+    setNewResult(diceId: number): void {
+        let diceCount = 3;
+        let newResults: number[]  = [...Array(diceCount)].map((el, index) => {
+            let rand = Math.floor(Math.random()*6)+1;
+            if(index === diceId) {
+                return rand;
+            }
+            return this.state.results[index] || rand;
+        });
+        let newShuffle: boolean[] = [...Array(diceCount)].map((el, index) => index === diceId);
         this.setState({
             results: newResults,
+            dicesToShuffle: newShuffle,
             rollIndex: this.state.rollIndex + 1
         });
     }
-
 
     render() {
         return (
@@ -25,8 +34,12 @@ export default class Lobby extends React.Component {
                 <RoomListBox/>
 
                 <div style={{margin: '1rem'}}>
-                    <button onClick={this.setNewResult.bind(this)}>würfeln</button>
-                    <DiceBox rollIndex={this.state.rollIndex} nextRollResults={this.state.results}/>
+                    <DiceBox rollIndex={this.state.rollIndex}
+                             nextRollResults={this.state.results}
+                             diceToRollMask={this.state.dicesToShuffle}
+                             onDicesClicked={this.setNewResult.bind(this)}
+                             highlightColors={['red','blue', 'purple']}
+                    />
                 </div>
 
             </div>
