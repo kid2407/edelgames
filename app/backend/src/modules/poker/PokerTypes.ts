@@ -16,7 +16,7 @@ export enum PokerCardType {
 }
 
 export type PokerCard = {
-    type: PokerCardType,
+    suit: PokerCardType,
     value: number
 }
 

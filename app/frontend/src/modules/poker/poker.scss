@@ -6,8 +6,8 @@
     justify-content: center;
 
     img {
-        max-width: 100%;
         max-height: 100%;
+        max-width: 100%;
     }
 
     .pokerTable {
@@ -84,7 +84,54 @@
                         button {
                             position: relative;
                         }
+
+                        button.saveConfigButton {
+                            bottom: 5px;
+                        }
                     }
+                }
+            }
+        }
+    }
+
+    .pokerTable {
+        background-color: #35654d;
+        border: 20px solid #1f2020;
+        width: 100%;
+        height: 100%;
+        margin-bottom: 80px;
+        position: relative;
+
+        $playerWrapperWidth: 20%;
+        $playerWrapperHeight: 20%;
+
+        .playerWrapper {
+            width: $playerWrapperWidth;
+            height: $playerWrapperHeight;
+            position: absolute;
+            padding: 5px;
+
+            .playerData {
+                display: inline-flex;
+                text-align: center;
+                height: 100%;
+                vertical-align: top;
+                margin-left: 10px;
+            }
+
+            .handCards {
+                display: inline-flex;
+                height: 100%;
+                align-items: flex-start;
+
+                img {
+                    max-width: 70px;
+                    vertical-align: top;
+                    object-fit: contain;
+                }
+
+                img + img {
+                    margin-left: 5px;
                 }
             }
         }
