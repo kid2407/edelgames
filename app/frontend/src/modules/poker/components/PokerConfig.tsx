@@ -26,7 +26,7 @@ export default class PokerConfig extends Component<PokerConfigProps, {}> {
     }
 
     render() {
-        return <div className={"settingsOverlay"}>
+        return this.props.showOverlay ? <div className={"settingsOverlay"}>
             <div className={"wrapper"}>
                 <h2>Spiel-Einstellungen</h2>
                 <form onSubmit={this.updateSettings.bind(this)}>
@@ -63,10 +63,11 @@ export default class PokerConfig extends Component<PokerConfigProps, {}> {
                                        readOnly={!this.props.isRoomMaster}/>
                             </div>
                         </div>
-                        {this.props.isRoomMaster ? <button className={"startGameButton"} type={"submit"}>Spiel Starten</button> : null}
+                        {this.props.isRoomMaster ? <button className={"saveConfigButton"} type={"submit"}>Einstellungen speichern</button> : null}
+                        {this.props.isRoomMaster ? <button className={"startGameButton"} type={"button"} onClick={this.startGame.bind(this)}>Spiel starten</button> : null}
                     </fieldset>
                 </form>
             </div>
-        </div>;
+        </div> : null;
     }
 }

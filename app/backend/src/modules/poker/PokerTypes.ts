@@ -15,14 +15,41 @@ export enum PokerCardType {
     SPADES = 'spades'
 }
 
+export type PokerHandCard = {
+    firstCard: PokerCard,
+    secondCard: PokerCard
+}
+
 export type PokerCard = {
     suit: PokerCardType,
     value: number
 }
 
+export enum PokerPhase {
+    PREFLOP,
+    FLOP,
+    TURN,
+    RIVER,
+    SHOWDOWN
+}
+
 export type PokerGameState = {
-    running: boolean,
+    bets: {
+        [userId: string]: number
+    },
+    communityCards: PokerCard[],
     config: PokerConfig,
+    currentlyActiveUser: number
+    dealerIndex: number,
+    deck: PokerCard[],
+    handCards: {
+        [userId: string]: PokerHandCard
+    }
+    highestRaise: number | null,
+    lastRaiseBy: string | null,
+    phase: PokerPhase,
+    pot: number,
     round: number,
-    deck: PokerCard[]
+    running: boolean,
+    players: string[]
 }
