@@ -1,11 +1,52 @@
 #roomListBox {
 
   .room-overview-box {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid white;
+    border-radius: 4px;
+    min-width: fit-content;
+    width: 100%;
     margin-bottom: 1rem;
 
     .room-overview-box--room-data {
+      background-color: rgba($white, 0.2);
+      padding: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+
+      .text-align-left {
+        svg {
+          margin: 0 2.5rem 0 0.5rem;
+        }
+      }
+
       .room-join-button {
         cursor: pointer;
+      }
+
+      span + span {
+        margin-left: 1rem;
+      }
+    }
+
+    .room-overview-box--member-list {
+      display: flex;
+      flex-direction: column;
+
+      .member-list-row {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+        width: 100%;
+
+        &:not(:last-of-type) {
+          border-bottom: 2px solid $backgroundLight;
+        }
+
+        .profile-picture {
+          margin-right: 1rem;
+        }
       }
     }
 
@@ -20,8 +61,8 @@
       .room-overview-box--member-list {
         align-items: center;
         justify-content: center;
-        font-size: 3rem;
         cursor: pointer;
+        padding: 1rem;
       }
     }
   }

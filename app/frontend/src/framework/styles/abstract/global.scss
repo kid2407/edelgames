@@ -8,8 +8,7 @@ html, :root {
 
 body {
   margin: 0;
-  font-family: 'Open Sans', Helvetica, Arial, sans-serif,
-  sans-serif;
+  font-family: $font-family;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: $text-color;
