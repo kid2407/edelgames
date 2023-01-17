@@ -1,5 +1,5 @@
 import React, {Component, ReactNode} from "react";
-import {PokerCard, PokerCardType, PokerTableData} from "../PokerTypes";
+import { PokerCard, PokerCardType, PokerTableData } from "../PokerTypes";
 
 export default class PokerTable extends Component<PokerTableData, {}> {
 
