@@ -25,7 +25,8 @@ export default class PokerGame extends React.Component<{}, PokerGameState> imple
         running: false,
         handCards: null,
         phase: PokerPhase.PREFLOP,
-        players: []
+        players: [],
+        communityCards: []
     }
 
     constructor(props: any) {
@@ -51,15 +52,15 @@ export default class PokerGame extends React.Component<{}, PokerGameState> imple
             running: eventData.running,
             handCards: eventData.handCards,
             phase: eventData.phase,
-            players:eventData.players
+            players:eventData.players,
+            communityCards:eventData.communityCards
         })
     }
 
     render(): ReactNode {
-        {this.api.getLogger().debug("Re-Rendering the view!", this.state.players)}
         return (
             <div id={"poker"}>
-                <PokerTable isRunning={this.state.running} handCards={this.state.handCards} round={this.state.round} phase={this.state.phase} running={this.state.running} api={this.api} players={this.state.players}/>
+                <PokerTable isRunning={this.state.running} handCards={this.state.handCards} round={this.state.round} phase={this.state.phase} running={this.state.running} api={this.api} players={this.state.players} communityCards={this.state.communityCards}/>
                 <PokerConfig config={this.state.config} api={this.api} isRoomMaster={this.api.getPlayerApi().isRoomMaster()} showOverlay={!this.state.running}/>
             </div>
         );

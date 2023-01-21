@@ -29,6 +29,7 @@ export default class PokerGame implements ModuleGameInterface {
 
     private sendCurrentGameState(): void {
         let newGameState = {
+            communityCards: this.gameState.communityCards,
             config: this.gameState.config,
             round: this.gameState.round,
             running: this.gameState.running,
